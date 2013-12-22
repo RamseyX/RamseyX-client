@@ -1,0 +1,10 @@
+﻿#define n 3
+#define p 67
+#define mn 33
+#define g 2
+#define q1 3
+#define q2 3
+#define q3 6
+#define APPROXIMATE_BLOCK_LENGTH 50000000LL
+#define MAX_DAYS 5
+#define TASKS_PER_BATCH 500
