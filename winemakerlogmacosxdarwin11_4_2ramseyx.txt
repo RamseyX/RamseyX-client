@@ -1,0 +1,519 @@
+➜  RamseyX git:(patch-1) winemaker --lower-uppercase --mfc /Users/apple/RamseyX
+Winemaker 0.8.4
+Copyright 2000-2004 François Gouget <fgouget@codeweavers.com> for CodeWeavers
+Copyright 2004 Dimitrie O. Paun
+Copyright 2009-2012 André Hentschel
+Scanning the source directories...
+Fixing the source files...
+  dhry_1.c
+  dhry_2.c
+  CPUInfo.cpp
+  Graph.cpp
+  LoginDlg.cpp
+  MyCurlWrapper.cpp
+  RamseyX.cpp
+  RamseyXDlg.cpp
+  RamseyXTask.cpp
+  Set.cpp
+  SignupDlg.cpp
+  Splash.cpp
+  RamseyX.rc
+  CPUInfo.h
+  CPULimiter.h
+  Graph.h
+  LoginDlg.h
+  MyCurlWrapper.h
+  RamseyX.h
+  RamseyXDlg.h
+  RamseyXTask.h
+  Set.h
+  SignupDlg.h
+  Splash.h
+  constants.h
+  dhry.h
+  res/RamseyX.rc2
+  resource.h
+  stdafx.cpp
+  stdafx.h
+  targetver.h
+Generating project files...
+  .
+➜  RamseyX git:(patch-1) ✗ make
+winegcc -c  -mno-cygwin -I.    -o dhry_1.o dhry_1.c
+dhry_1.c:31: warning: conflicting types for built-in function ‘malloc’
+dhry_1.c: In function ‘Benchmark’:
+dhry_1.c:203: warning: incompatible implicit declaration of built-in function ‘strcpy’
+winegcc -c  -mno-cygwin -I.    -o dhry_2.o dhry_2.c
+wineg++ -c   -I.    -o CPUInfo.o CPUInfo.cpp
+In file included from StdAfx.h:16,
+                 from CPUInfo.cpp:1:
+targetver.h:8:23: error: sdkddkver.h: No such file or directory
+In file included from CPUInfo.cpp:1:
+StdAfx.h:23:63: error: afxwin.h: No such file or directory
+StdAfx.h:24:42: error: afxext.h: No such file or directory
+StdAfx.h:31:85: error: afxdtctl.h: No such file or directory
+StdAfx.h:34:73: error: afxcmn.h: No such file or directory
+StdAfx.h:37:71: error: afxcontrolbars.h: No such file or directory
+StdAfx.h:40:55: error: afxsock.h: No such file or directory
+StdAfx.h:64:19: error: atlrx.h: No such file or directory
+In file included from StdAfx.h:58,
+                 from CPUInfo.cpp:1:
+/usr/local/include/wine/windows/mmsystem.h:28: error: ‘LPSTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:29: error: ‘LPCSTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:30: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:32: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:33: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:34: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:35: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:36: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:37: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:38: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:39: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:40: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:41: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:42: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:44: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:45: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:46: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:47: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:48: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:49: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:50: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:51: error: expected initializer before ‘*’ token
+In file included from StdAfx.h:58,
+                 from CPUInfo.cpp:1:
+/usr/local/include/wine/windows/mmsystem.h:55: error: typedef ‘LRESULT’ is initialized (use __typeof__ instead)
+/usr/local/include/wine/windows/mmsystem.h:55: error: ‘CALLBACK’ was not declared in this scope
+/usr/local/include/wine/windows/mmsystem.h:55: error: ‘DRIVERPROC’ was not declared in this scope
+/usr/local/include/wine/windows/mmsystem.h:69: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:71: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:74: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:76: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:79: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:81: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:82: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:83: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:84: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:86: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:87: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:88: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:89: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:90: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:91: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:92: error: ‘BYTE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:95: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:223: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:224: error: ‘LPCWSTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:225: error: ‘LPCWSTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:229: error: ‘LRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:233: error: ‘HDRVR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:235: error: ‘HDRVR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:237: error: ‘LRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:238: error: ‘LRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:240: error: ‘HMODULE’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:242: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:244: error: expected `)' before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:267: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:268: error: ‘BOOL’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:269: error: ‘BOOL’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:271: error: ‘BOOL’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:272: error: ‘BOOL’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:310: error: ‘LPDRVCALLBACK’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:328: error: ‘LPSTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:329: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:330: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:331: error: ‘DWORD_PTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:332: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:333: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:335: error: ‘DWORD_PTR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:345: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:346: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:347: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:348: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:349: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:350: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:351: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:352: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:356: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:357: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:358: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:359: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:360: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:361: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:362: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:363: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:365: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:380: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:380: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:383: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:384: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:385: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:386: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:387: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:388: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:389: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:390: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:391: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:392: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:393: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:395: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:414: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:414: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:416: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:417: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:418: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:419: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:420: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:421: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:422: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:424: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:438: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:438: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:440: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:441: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:442: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:443: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:444: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:445: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:446: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:447: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:448: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:449: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:451: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:483: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:483: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:488: error: ‘WAVEFORMAT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:489: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:496: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:497: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:498: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:499: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:500: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:501: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:502: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:507: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:508: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:509: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:511: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:512: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:513: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:514: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:516: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:517: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:518: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:519: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:520: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:521: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:522: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:523: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:524: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:525: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:526: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:527: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:528: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:529: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:530: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:531: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:532: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:533: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:534: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:536: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:537: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:539: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:540: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:541: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:542: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:543: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:544: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:545: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:546: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:547: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:548: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:549: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:561: error: ‘LPDRVCALLBACK’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:563: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:564: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:565: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:566: error: expected initializer before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:598: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:599: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:600: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:601: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:602: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:603: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:604: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:605: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:606: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:610: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:611: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:612: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:613: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:614: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:615: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:616: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:617: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:618: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:621: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:637: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:637: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:640: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:641: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:642: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:643: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:644: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:645: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:646: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:647: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:648: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:649: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:650: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:651: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:654: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:676: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:676: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:679: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:680: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:681: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:682: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:683: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:686: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:698: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:698: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:701: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:702: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:703: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:704: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:705: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:706: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:707: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:708: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:711: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:728: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:728: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:736: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:737: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:741: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:742: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:751: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:753: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:754: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:755: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:771: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:772: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:773: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:775: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:776: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:777: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:778: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:780: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:781: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:782: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:783: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:784: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:785: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:786: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:787: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:788: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:789: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:790: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:792: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:793: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:794: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:796: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:797: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:799: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:800: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:801: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:802: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:803: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:804: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:805: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:806: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:807: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:808: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:809: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:810: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:811: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:812: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:813: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:814: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:815: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:816: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:821: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:822: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:823: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:824: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:825: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:826: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:827: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:831: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:832: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:833: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:834: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:835: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:836: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:837: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:840: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:854: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:854: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:857: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:858: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:859: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:860: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:861: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:862: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:863: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:864: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:865: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:866: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:869: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:879: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:880: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:882: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:883: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:884: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:890: error: expected `)' before ‘*’ token
+/usr/local/include/wine/windows/mmsystem.h:900: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:901: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:905: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:906: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:907: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:908: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:909: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:910: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:911: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:976: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:977: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:978: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:979: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:980: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:981: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:982: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:983: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:984: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:985: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:986: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:987: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:988: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:989: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:990: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:991: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:992: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:993: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:994: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:995: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:996: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:997: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:998: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:999: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1003: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1004: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1005: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1006: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1007: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1008: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1009: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1010: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1011: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1012: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1013: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1014: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1015: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1016: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1017: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1018: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1019: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1020: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1021: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1022: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1023: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1024: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1025: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1026: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1028: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:1059: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:1059: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:1062: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1063: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1064: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1065: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1066: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1067: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1068: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1069: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1070: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1071: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1072: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1073: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1074: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1075: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1076: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1077: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1078: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1079: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1080: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1081: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1082: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1083: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1084: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1085: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1086: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1087: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1088: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1090: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:1098: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:1098: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:1101: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1102: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1103: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1104: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1105: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1106: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1107: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1108: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1109: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1110: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1111: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1112: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1113: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1117: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1118: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1120: error: ‘UINT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1121: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1122: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1123: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1124: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1125: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1126: error: ‘MMRESULT’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1135: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1136: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1137: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1138: error: ‘CHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1139: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1140: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1144: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1145: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1146: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1147: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1148: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1149: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1152: error: expected constructor, destructor, or type conversion before ‘(’ token
+/usr/local/include/wine/windows/mmsystem.h:1165: error: expected constructor, destructor, or type conversion before ‘,’ token
+/usr/local/include/wine/windows/mmsystem.h:1165: error: expected constructor, destructor, or type conversion before ‘;’ token
+/usr/local/include/wine/windows/mmsystem.h:1168: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1169: error: ‘WORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1170: error: ‘MMVERSION’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1171: error: ‘WCHAR’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1172: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1173: error: ‘DWORD’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1174: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1175: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1176: error: ‘GUID’ does not name a type
+/usr/local/include/wine/windows/mmsystem.h:1179: error: expected constructor, destructor, or type conversion before ‘(’ token
+In file included from /usr/local/include/wine/windows/mmsystem.h:2516,
+                 from StdAfx.h:58,
+                 from CPUInfo.cpp:1:
+/usr/local/include/wine/windows/poppack.h:253: error: expected `}' before end of line
+/usr/local/include/wine/windows/poppack.h:253: error: expected declaration before end of line
+winegcc: g++ failed
+make: *** [CPUInfo.o] Error 2
