@@ -43,8 +43,9 @@ bool Set::contain(int x) const
 
 bool Set::isEmpty() const
 {
-	return low == 0LL && high == 0LL;
+        return (low || high) == 0LL;
 }
+
 
 void Set::resetIterator()
 {
