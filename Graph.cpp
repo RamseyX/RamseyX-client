@@ -32,13 +32,12 @@ void Graph::clear()
 
 bool Graph::size2CliqueExists()
 {
-	for (int i = 0; i < p; i++)
-		for (int j = i + 1; j < p; j++)
-			if (setOfNeighbourVertices[i].contain(j))
-				return true;
-
-	return false;
+        for (int i = 0; i < p; i++)
+                if (!(setOfNeighbourVertices[i].isEmpty()))
+                                return true;
+        return false;
 }
+
 
 bool Graph::size3CliqueExists()
 {
