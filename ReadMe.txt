@@ -1,4 +1,8 @@
-﻿================================================================================
+We are still building a native makefile support.
+For Linux and Mac users, try winemaker <http://www.winehq.org/docs/winemaker>.
+Or you can simply wine <http://winehq.org/> the pre-compiled app.<http://www.ramseyx.org/>
+And we are using MFC. So remember to use that --mfc flag.
+================================================================================
 MICROSOFT 基础类库: RamseyX 项目概述
 ===============================================================================
 
