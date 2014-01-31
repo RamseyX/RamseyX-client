@@ -42,11 +42,11 @@ BOOL CRamseyXApp::InitInstance()
 	
 
 	// 防止双开
-	HANDLE hObject = ::CreateMutex(NULL, FALSE, _T("CRamseyXApp"));
+	HANDLE hObject = ::CreateMutex(nullptr, FALSE, _T("CRamseyXApp"));
 	if(::GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		::CloseHandle(hObject);
-		::MessageBox(NULL, _T("程序已经运行。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
+		::MessageBox(nullptr, _T("程序已经运行。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
 
 		return FALSE;
 	}

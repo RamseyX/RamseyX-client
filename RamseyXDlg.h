@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "RamseyXTask.h"
+#include "RamseyXController.h"
 //#include "CPULimiter.h"
 
-UINT ThreadProc(LPVOID lpParam);
+//UINT ThreadProc(LPVOID lpParam);
 UINT FetchProc(LPVOID lpParam);
 UINT RefreshRankProc(LPVOID lpParam);
 UINT AutoUploadProc(LPVOID lpParam);
@@ -30,42 +30,28 @@ public:
 	
 public:
 	CString GetStatus();
-	void AddNewTask(RXTASKINFO &info);
-	BOOL WriteLog();
-	BOOL ReadLog();
 
 public:
 	void StoreLevelSpeed() const;
 	void StoreAccount() const;
 
 public:
-	CList<RXTASKINFO> m_runningTaskQueue;
-	CList<RXTASKINFO> m_todoTaskQueue;
-	CList<RXTASKINFO> m_completedTaskQueue;
-	CList<RXBATCHINFO> m_batchQueue;
+	RamseyXController m_controller;
 
-public:
-	RamseyXTask  **m_aTasks;
-	CWinThread **m_aWorkingThreads;
 	//CPULimiter m_limiter;
 	HANDLE m_aTimerHandles[10];
 	HANDLE m_hTimerQueue;
-	unsigned __int64 m_uID;
+	unsigned long long m_uID;
 	int m_nCoreNum;
 	int m_nThreadNum;
 	int m_nCPULimit;
-	time_t m_tLastLog;
-	time_t m_tTime;
-	time_t m_tLastBenchmark;
 	bool m_bIsAuto;
 	bool m_bIsUpdating;
-	bool m_bIsRunning;
 	bool m_bWasRunning;
 	bool m_bIsLocked;
 	bool m_bIsExiting;
-	bool m_bIsAutoUploading;
-	float m_fVAX_MIPS;
-	float m_fTotalVAX_MIPS;
+	std::atomic<bool> m_bIsAutoUploading = {false};
+	double m_fVAX_MIPS;
 	CString m_strUsername;
 	CString m_strPassword;
 	CString m_strDir;
@@ -90,7 +76,6 @@ public:
 	afx_msg LRESULT OnEnableCtrl(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnClearMyList(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnNewTask(WPARAM wParam, LPARAM lParam);
-	afx_msg LRESULT OnNewBatch(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnAutoUpload(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnWriteLog(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnClrOutdated(WPARAM wParam, LPARAM lParam);

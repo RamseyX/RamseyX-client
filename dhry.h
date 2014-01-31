@@ -393,13 +393,17 @@
 
 /* General definitions: */
 
-#include <stdio.h>
+#include <string.h>
                 /* for strcpy, strcmp */
+
+#include <stdbool.h>
+                /* for true, false */
+
+#include <stdlib.h>
+                /* for malloc */
 
 #define Null 0 
                 /* Value of a Null pointer */
-#define true  1
-#define false 0
 
 typedef int     One_Thirty;
 typedef int     One_Fifty;

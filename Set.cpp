@@ -1,7 +1,8 @@
 ﻿#include "stdafx.h"
 #include "Set.h"
 
-Set::Set() : iterator(-1), low(0LL), high(0LL)
+
+/*Set::Set() : iterator(-1), low(0LL), high(0LL)
 {
 }
 
@@ -91,4 +92,4 @@ void Set::operator -=(const Set &S)
 {
 	low &= ~S.low;
 	high &= ~S.high;
-}
+}*/

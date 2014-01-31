@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include "stdafx.h"
-
 class CPULimiter
 {
 	LARGE_INTEGER m_lastTotalSystemTime;

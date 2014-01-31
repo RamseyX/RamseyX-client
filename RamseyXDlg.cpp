@@ -5,74 +5,17 @@
 #include "RamseyX.h"
 #include "RamseyXDlg.h"
 #include "afxdialogex.h"
-#include "CPUInfo.h"
 #include "LoginDlg.h"
 #include "Splash.h"
-extern "C" 
+#include "RamseyXUtils.h"
+extern "C"
 {
-	#include "dhry.h"
+#include "dhry.h"
 }
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-UINT ThreadProc(LPVOID lpParam)
-{
-	CRamseyXDlg* pDlg = static_cast<CRamseyXDlg*>(AfxGetApp()->GetMainWnd());
-	int nID = reinterpret_cast<int>(lpParam);
-	RamseyXTask *pTask = new RamseyXTask;
-
-	csRunning.Lock();
-	POSITION pos = pDlg->m_runningTaskQueue.GetHeadPosition();
-	while (pos && pDlg->m_runningTaskQueue.GetAt(pos).threadID != nID)
-		pDlg->m_runningTaskQueue.GetNext(pos);
-	if (!pos)
-	{
-		csRunning.Unlock();
-		pDlg->MessageBox(_T("错误的线程设置。任务未运行。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
-		return 0;
-	}
-	RXTASKINFO info = pDlg->m_runningTaskQueue.GetAt(pos);
-	csRunning.Unlock();
-	
-	pDlg->m_aTasks[nID] = pTask;
-
-	pTask->launch(info);
-	
-	info.offset = info.blockLength;
-	csRunning.Lock();
-	pDlg->m_runningTaskQueue.RemoveAt(pos);
-	csRunning.Unlock();
-	csCompleted.Lock();
-	pDlg->m_completedTaskQueue.AddTail(info);
-	csCompleted.Unlock();
-
-	delete pDlg->m_aTasks[nID];
-	pDlg->m_aTasks[nID] = NULL;
-	pDlg->m_aWorkingThreads[nID] = NULL;
-
-	csBatch.Lock();
-	pos = pDlg->m_batchQueue.GetHeadPosition();
-	while (pos && pDlg->m_batchQueue.GetAt(pos).localCounter != info.batch)
-		pDlg->m_batchQueue.GetNext(pos);
-	if (pos)
-	{
-		RXBATCHINFO batch = pDlg->m_batchQueue.GetAt(pos);
-		for (int i = 0; i < batch.numOfTasks; i++)
-			if (batch.taskID[i] == info.id)
-			{
-				batch.taskCompleted[i] = true;
-				break;
-			}
-		pDlg->m_batchQueue.SetAt(pos, batch);
-	}
-	csBatch.Unlock();
-
-	pDlg->SendMessage(WM_THREADOPEN);
-
-	return 0;
-}
 
 UINT FetchProc(LPVOID lpParam)
 {
@@ -81,10 +24,10 @@ UINT FetchProc(LPVOID lpParam)
 	pDlg->SendMessage(WM_ENABLECTRL, FALSE, IDC_FETCH_NOW);
 	pDlg->GetDlgItem(IDC_FETCH_NOW)->SetWindowText(_T("获取中..."));
 
-	MyCurlWrapper conn;
-	
+	std::wstring str;
+
 	// What's up
-	if (!conn.StandardOpt("www.ramseyx.org/whats_up.php") || !conn.Execute())
+	if (pDlg->m_controller.whatsup(str) != ERR_SUCCESS)
 	{
 		pDlg->GetDlgItem(IDC_WHATSUP)->SetWindowText(_T("获取动态不成功。"));
 		pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_FETCH_NOW);
@@ -93,64 +36,44 @@ UINT FetchProc(LPVOID lpParam)
 		return 0;
 	}
 	else
-	{
-		if (conn.GetErrorCode() != ERR_SUCCESS)
-		{
-			pDlg->GetDlgItem(IDC_WHATSUP)->SetWindowText(_T("获取动态不成功。"));
-			pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_FETCH_NOW);
-			pDlg->GetDlgItem(IDC_FETCH_NOW)->SetWindowText(_T("立即获取(&F)"));
-
-			return 0;
-		}
-		pDlg->GetDlgItem(IDC_WHATSUP)->SetWindowText(conn.GetString());
-	}
+		pDlg->GetDlgItem(IDC_WHATSUP)->SetWindowText(CString(str.c_str()));
 
 	// Get version
-	if (!conn.StandardOpt("www.ramseyx.org/get_version.php") || !conn.Execute())
+	int P = 0, S = 0, T = 0;
+	if (pDlg->m_controller.getVersion(P, S, T) != ERR_SUCCESS)
 	{
 		pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_FETCH_NOW);
 		pDlg->GetDlgItem(IDC_FETCH_NOW)->SetWindowText(_T("立即获取(&F)"));
 
 		return 0;
 	}
-	else
+	else if (PRIMARY_VERSION < P ||
+		(PRIMARY_VERSION == P && (SECONDARY_VERSION < S || (SECONDARY_VERSION == S && TERTIARY_VERSION < T))))
 	{
-		if (conn.GetErrorCode() != ERR_SUCCESS)
-		{
-			pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_FETCH_NOW);
-			pDlg->GetDlgItem(IDC_FETCH_NOW)->SetWindowText(_T("立即获取(&F)"));
+		CString strVersion;
+		strVersion.Format(_T("%d.%d.%d"), P, S, T);
 
-			return 0;
-		}
-		int P = 0, S = 0, T = 0;
-		swscanf_s(conn.GetString(), _T("%d %d %d"), &P, &S, &T);
-		if (PRIMARY_VERSION < P || (PRIMARY_VERSION == P && (SECONDARY_VERSION < S || (SECONDARY_VERSION == S && TERTIARY_VERSION < T))))
-		{
-			CString strVersion;
-			strVersion.Format(_T("%d.%d.%d"), P, S, T);
+		TCHAR lszFilename[MAX_PATH + 2] = _T(".\\RamseyXUpdate.exe");
+		SHELLEXECUTEINFO sei = {};
+		sei.cbSize = sizeof (SHELLEXECUTEINFO);
+		sei.fMask = SEE_MASK_NOCLOSEPROCESS;
+		sei.lpFile = lszFilename;
+		sei.lpVerb = _T("open");
+		sei.lpDirectory = nullptr;
+		sei.nShow = SW_SHOW;
+		sei.lpParameters = strVersion;
 
-			TCHAR lszFilename[MAX_PATH + 2] = _T(".\\RamseyXUpdate.exe");
-			SHELLEXECUTEINFO sei = {0};
-			sei.cbSize = sizeof (SHELLEXECUTEINFO);
-			sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-			sei.lpFile = lszFilename;
-			sei.lpVerb = _T("open");
-			sei.lpDirectory = NULL;
-			sei.nShow = SW_SHOW;
-			sei.lpParameters = strVersion;
-	
-			::ShellExecuteEx(&sei);
+		::ShellExecuteEx(&sei);
 
-			pDlg->m_bIsUpdating = true;
-			pDlg->SendMessage(WM_CLOSE);
-			
-			return 0;
-		}
+		pDlg->m_bIsUpdating = true;
+		pDlg->SendMessage(WM_CLOSE);
+
+		return 0;
 	}
-	
+
 	pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_FETCH_NOW);
 	pDlg->GetDlgItem(IDC_FETCH_NOW)->SetWindowText(_T("立即获取(&F)"));
-	
+
 	return 0;
 }
 
@@ -161,78 +84,81 @@ UINT RefreshRankProc(LPVOID lpParam)
 	pDlg->SendMessage(WM_ENABLECTRL, FALSE, IDC_REFRESH_RANK);
 	pDlg->GetDlgItem(IDC_REFRESH_RANK)->SetWindowText(_T("刷新中..."));
 
-	CListCtrl* pList = static_cast<CListCtrl*>(pDlg->GetDlgItem(IDC_RANK));
+	CListCtrl *pList = static_cast<CListCtrl *>(pDlg->GetDlgItem(IDC_RANK));
 	// 清空旧列表
 	pList->DeleteAllItems();
 
-	pList = static_cast<CListCtrl*>(pDlg->GetDlgItem(IDC_ME));
+	pList = static_cast<CListCtrl *>(pDlg->GetDlgItem(IDC_ME));
 	// 清空旧列表
 	pList->DeleteAllItems();
 
-	pList = static_cast<CListCtrl*>(pDlg->GetDlgItem(IDC_TOTAL));
+	pList = static_cast<CListCtrl *>(pDlg->GetDlgItem(IDC_TOTAL));
 	// 清空旧列表
 	pList->DeleteAllItems();
 
-	MyCurlWrapper conn;
-
-	// 获取新资料
-	if (!conn.StandardOpt("www.ramseyx.org/get_project_info.php") || !conn.Execute() || conn.GetErrorCode() != ERR_SUCCESS)
+	unsigned long long numOfTasksCompleted = 0;
+	unsigned long long numOfUsers = 0;
+	unsigned long long numOfMachines = 0;
+	unsigned long long numOfTasks = 0;
+	unsigned long long time = 0;
+	double currentPower = 0.0;
+	double maxPower = 0.0;
+	
+	if (pDlg->m_controller.getProjectInfo(numOfTasksCompleted,
+		numOfUsers, numOfMachines, numOfTasks,
+		time, currentPower, maxPower) != ERR_SUCCESS)
 	{
 		pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_REFRESH_RANK);
 		pDlg->GetDlgItem(IDC_REFRESH_RANK)->SetWindowText(_T("刷新(&R)"));
 
 		return 0;
 	}
-	
+
+	double progress = numOfTasksCompleted * 100.0 / numOfTasks;
+	if (100.0 - progress <= 0.01 && numOfTasksCompleted < numOfTasks)
+		progress = 99.99;
+
 	CString strProgress, strTime, strNumOfTasks, strPower;
-	TCHAR lszNumOfUsers[MAX_PATH] = {0}, lszNumOfMachines[MAX_PATH] = {0};
-	unsigned __int64 nTime = 0, nNumOfTasksFinished = 0, nNumOfTasks = 0;
-	float fCurrentPower = 0.0f, fMaxPower = 0.0f;
-	
-	swscanf_s(conn.GetString(), _T("%llu %s %s %llu %llu %f %f"), &nNumOfTasksFinished, lszNumOfUsers, sizeof (lszNumOfUsers),
-		lszNumOfMachines, sizeof (lszNumOfMachines), &nNumOfTasks, &nTime, &fCurrentPower, &fMaxPower);
-	
-	double fProgress = nNumOfTasksFinished * 100.0 / nNumOfTasks;
-	if (100.0 - fProgress <= 0.01 && nNumOfTasksFinished < nNumOfTasks)
-		fProgress = 99.99;
-	strProgress.Format(_T("%.2f%%"), fProgress);
-	strTime.Format(_T("%.2f"), nTime / 86400.0);
-	strNumOfTasks.Format(_T("%llu"), nNumOfTasks);
-	strPower.Format(_T("%.1f/%.1f"), fCurrentPower / 1000.0f, fMaxPower / 1000.0f);
+	strProgress.Format(_T("%.2f%%"), progress);
+	strTime.Format(_T("%.2f"), time / 86400.0);
+	strNumOfTasks.Format(_T("%llu"), numOfTasks);
+	strPower.Format(_T("%.1f/%.1f"), currentPower / 1000.0, maxPower / 1000.0);
 
 	// 完成度 总用户数 总计算机数 总任务数 总时长(日) 当前/峰值算力(KDMIPS)
 	pList->InsertItem(0, strProgress);
-	pList->SetItem(0, 1, LVIF_TEXT, lszNumOfUsers, 0, 0, 0, 0, 0);
-	pList->SetItem(0, 2, LVIF_TEXT, lszNumOfMachines, 0, 0, 0, 0, 0);
+	pList->SetItem(0, 1, LVIF_TEXT, CString(std::to_wstring(numOfUsers).c_str()), 0, 0, 0, 0, 0);
+	pList->SetItem(0, 2, LVIF_TEXT, CString(std::to_wstring(numOfMachines).c_str()), 0, 0, 0, 0, 0);
 	pList->SetItem(0, 3, LVIF_TEXT, strNumOfTasks, 0, 0, 0, 0, 0);
 	pList->SetItem(0, 4, LVIF_TEXT, strTime, 0, 0, 0, 0, 0);
 	pList->SetItem(0, 5, LVIF_TEXT, strPower, 0, 0, 0, 0, 0);
 
-	pList = static_cast<CListCtrl*>(pDlg->GetDlgItem(IDC_RANK));
-	
-	if (!conn.StandardOpt("www.ramseyx.org/get_top_20.php") || !conn.Execute() || conn.GetErrorCode() != ERR_SUCCESS)
+	pList = static_cast<CListCtrl *>(pDlg->GetDlgItem(IDC_RANK));
+
+	std::wstring str;
+	if (pDlg->m_controller.getTop20(str) != ERR_SUCCESS)
 	{
 		pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_REFRESH_RANK);
 		pDlg->GetDlgItem(IDC_REFRESH_RANK)->SetWindowText(_T("刷新(&R)"));
 
 		return 0;
 	}
+
+	// 排行 用户名 积分 完成任务数 总时长(日) 当前在线算力
+	CString strRankData(str.c_str());
 	
-	// 排行 用户名 积分 完成任务数 总时长(日)
-	CString strRankData(conn.GetString());
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 20; ++i)
 	{
 		CString strTmp;
-		TCHAR lszBuffer[MAX_PATH] = {0};
+		TCHAR lszBuffer[MAX_PATH] = {};
 
 		// rank
 		strTmp.Format(_T("%d"), i + 1);
 		pList->InsertItem(i, strTmp);
-		
+
 		// username
 		swscanf_s(strRankData, _T("%s"), lszBuffer, sizeof (lszBuffer));
 		strRankData = strRankData.Right(strRankData.GetLength() - strRankData.Find(_T(' '), 0) - 1);
-		pList->SetItem(i, 1, LVIF_TEXT,lszBuffer, 0, 0, 0, 0, 0);
+		pList->SetItem(i, 1, LVIF_TEXT, lszBuffer, 0, 0, 0, 0, 0);
 
 		// score
 		swscanf_s(strRankData, _T("%s"), lszBuffer, sizeof (lszBuffer));
@@ -240,11 +166,11 @@ UINT RefreshRankProc(LPVOID lpParam)
 		strRankData = strRankData.Right(strRankData.GetLength() - strRankData.Find(_T(' '), 0) - 1);
 		pList->SetItem(i, 2, LVIF_TEXT, strTmp, 0, 0, 0, 0, 0);
 
-		// number of tasks finished
+		// number of tasks completed
 		swscanf_s(strRankData, _T("%s"), lszBuffer, sizeof (lszBuffer));
 		strRankData = strRankData.Right(strRankData.GetLength() - strRankData.Find(_T(' '), 0) - 1);
 		pList->SetItem(i, 3, LVIF_TEXT, lszBuffer, 0, 0, 0, 0, 0);
-		
+
 		// time
 		swscanf_s(strRankData, _T("%s"), lszBuffer, sizeof (lszBuffer));
 		strTmp.Format(_T("%.2f"), _wtoi64(lszBuffer) / 86400.0);
@@ -266,45 +192,36 @@ UINT RefreshRankProc(LPVOID lpParam)
 		return 0;
 	}
 
-	pList = static_cast<CListCtrl*>(pDlg->GetDlgItem(IDC_ME));
+	pList = static_cast<CListCtrl *>(pDlg->GetDlgItem(IDC_ME));
 
-	if (!conn.StandardOpt("www.ramseyx.org/get_user_info.php") || !conn.SetPost())
+	unsigned long long rank = 0;
+	unsigned long long numOfRcmd = 0;
+	double score = 0.0;
+	std::wstring strRecommender;
+
+	if (pDlg->m_controller.getUserInfo(LPCTSTR(pDlg->m_strUsername),
+		LPCTSTR(pDlg->m_strPassword),
+		rank, score, numOfTasksCompleted, time, numOfRcmd,
+		strRecommender, currentPower) != ERR_SUCCESS)
 	{
 		pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_REFRESH_RANK);
 		pDlg->GetDlgItem(IDC_REFRESH_RANK)->SetWindowText(_T("刷新(&R)"));
 
 		return 0;
 	}
-	conn.AddPostField("username", CStringA(pDlg->m_strUsername));
-	conn.AddPostField("password", CStringA(pDlg->m_strPassword));
-	if (!conn.Execute() || conn.GetErrorCode() != ERR_SUCCESS)
-	{
-		pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_REFRESH_RANK);
-		pDlg->GetDlgItem(IDC_REFRESH_RANK)->SetWindowText(_T("刷新(&R)"));
 
-		return 0;
-	}
-	
 	CString strScore;
-	nTime = nNumOfTasksFinished = 0;
-	TCHAR lszRank[MAX_PATH] = {0}, lszScore[MAX_PATH] = {0}, lszNumOfRcmd[MAX_PATH] = {0}, lszRecommender[MAX_PATH] = {0};
-	fCurrentPower = 0.0f;
-
-	swscanf_s(conn.GetString(), _T("%s %s %llu %llu %s %s %f"), lszRank, sizeof (lszRank), lszScore, sizeof (lszScore),
-		&nNumOfTasksFinished, &nTime,
-		lszNumOfRcmd, sizeof (lszNumOfRcmd), lszRecommender, sizeof (lszRecommender), &fCurrentPower);
-	
-	strScore.Format(_T("%.2f"), _wtof(lszScore));
-	strTime.Format(_T("%.2f"), nTime / 86400.0);
-	strNumOfTasks.Format(_T("%llu"), nNumOfTasksFinished);
-	strPower.Format(_T("%.1f"), fCurrentPower);
+	strScore.Format(_T("%.2f"), score);
+	strTime.Format(_T("%.2f"), time / 86400.0);
+	strNumOfTasks.Format(_T("%llu"), numOfTasksCompleted);
+	strPower.Format(_T("%.1f"), currentPower);
 
 	// 排行 积分 总任务数 总时长(日) 推荐数 当前在线算力(DMIPS)
-	pList->InsertItem(0, lszRank);
+	pList->InsertItem(0, std::to_wstring(rank).c_str());
 	pList->SetItem(0, 1, LVIF_TEXT, strScore, 0, 0, 0, 0, 0);
 	pList->SetItem(0, 2, LVIF_TEXT, strNumOfTasks, 0, 0, 0, 0, 0);
 	pList->SetItem(0, 3, LVIF_TEXT, strTime, 0, 0, 0, 0, 0);
-	pList->SetItem(0, 4, LVIF_TEXT, lszNumOfRcmd, 0, 0, 0, 0, 0);
+	pList->SetItem(0, 4, LVIF_TEXT, std::to_wstring(numOfRcmd).c_str(), 0, 0, 0, 0, 0);
 	pList->SetItem(0, 5, LVIF_TEXT, strPower, 0, 0, 0, 0, 0);
 
 	pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_REFRESH_RANK);
@@ -315,37 +232,29 @@ UINT RefreshRankProc(LPVOID lpParam)
 
 UINT AutoUploadProc(LPVOID lpParam)
 {
-	CRamseyXDlg* pDlg = static_cast<CRamseyXDlg*>(AfxGetApp()->GetMainWnd());
-	int nParam = reinterpret_cast<int>(lpParam);
-	bool bUpload = (nParam & 1) != 0;
-	bool bDownload = (nParam & (1 << 1)) != 0;
+	CRamseyXDlg *pDlg = static_cast<CRamseyXDlg *>(AfxGetApp()->GetMainWnd());
+	unsigned int nParam = reinterpret_cast<int>(lpParam);
+	bool bUpload = ((nParam & 1U) != 0);
+	bool bDownload = ((nParam & (1U << 1)) != 0);
 
-	CStringA strUsername(pDlg->m_strUsername), strPassword(pDlg->m_strPassword);
-
-	MyCurlWrapper conn;
-
-	// 版本检查
-	if (!conn.StandardOpt("www.ramseyx.org/get_version.php") || !conn.Execute())
-	{
-		pDlg->m_bIsAutoUploading = false;
-		return 0;
-	}
-	if (conn.GetErrorCode() != 0)
-	{
-		pDlg->m_bIsAutoUploading = false;
-		return 0;
-	}
+	// Check version
 	int P = 0, S = 0, T = 0;
-	swscanf_s(conn.GetString(), _T("%d %d %d"), &P, &S, &T);
+	if (pDlg->m_controller.getVersion(P, S, T) != ERR_SUCCESS)
+	{
+		pDlg->m_bIsAutoUploading = false;
+		return 0;
+	}
 	if (PRIMARY_VERSION < P || (PRIMARY_VERSION == P && SECONDARY_VERSION < S))
 	{
 		CString strVersion;
 		strVersion.Format(_T("%d.%d.%d"), P, S, T);
 
-		if (IDOK == pDlg->MessageBox(_T("您的客户端版本过低，无法上传或下载，请更新至最新版程序。本地日志将会被保留。点击确定立刻更新至 ") + strVersion + _T("。"), _T("RamseyX 运算客户端"), MB_OKCANCEL | MB_ICONINFORMATION))
+		if (IDOK ==
+			pDlg->MessageBox(_T("您的客户端版本过低，无法下载新任务，请更新至最新版程序。点击确定立刻更新至 ") +
+			strVersion + _T("。"), _T("RamseyX 运算客户端"), MB_OKCANCEL | MB_ICONINFORMATION))
 		{
 			TCHAR lszFilename[MAX_PATH + 2] = _T(".\\RamseyXUpdate.exe");
-			SHELLEXECUTEINFO sei = {0};
+			SHELLEXECUTEINFO sei = { 0 };
 			sei.cbSize = sizeof (SHELLEXECUTEINFO);
 			sei.fMask = SEE_MASK_NOCLOSEPROCESS;
 			sei.lpFile = lszFilename;
@@ -359,156 +268,47 @@ UINT AutoUploadProc(LPVOID lpParam)
 			pDlg->m_bIsUpdating = true;
 			pDlg->SendMessage(WM_CLOSE);
 
-			pDlg->m_bIsAutoUploading = false;
 			return 0;
 		}
 		pDlg->m_bIsAutoUploading = false;
 		return 0;
 	}
-	
-	// 上传
+
+	// Upload
 	if (bUpload)
 	{
-		char szComputerName[MAX_PATH + 2];
+		TCHAR lszComputerName[MAX_PATH + 2];
 		DWORD dwSize = MAX_PATH;
-		::GetComputerNameA(szComputerName, &dwSize);
-		CStringA strCPUBrand(CCPUInfo().GetBrand());
-		
-		csCompleted.Lock();
-		int nUpNum = pDlg->m_completedTaskQueue.GetCount();
-		while (nUpNum-- > 0)
+		::GetComputerName(lszComputerName, &dwSize);
+
+		switch (pDlg->m_controller.uploadAll(
+			LPCTSTR(pDlg->m_strUsername),
+			LPCTSTR(pDlg->m_strPassword),
+			lszComputerName,
+			RamseyXUtils::getCPUBrandString()))
 		{
-			RXTASKINFO info = pDlg->m_completedTaskQueue.GetHead();
-			csCompleted.Unlock();
-			if (!conn.StandardOpt("www.ramseyx.org/upload.php") || !conn.SetPost())
-			{
+			case ERR_SUCCESS:
+				break;
+			default:
 				pDlg->m_bIsAutoUploading = false;
 				return 0;
-			}
-
-			CStringA strTmp;
-			conn.AddPostField("username", strUsername);				// username
-			conn.AddPostField("password", strPassword);				// password
-			strTmp.Format("%llu", info.id);
-			conn.AddPostField("task_id", strTmp);					// task_id
-			strTmp.Format("%d", info.result);
-			conn.AddPostField("task_result", strTmp);				// task_result
-			strTmp.Format("%llu", pDlg->m_tTime);
-			conn.AddPostField("time", strTmp);						// time
-			strTmp.Format("%llu", info.complexity / 3);
-			conn.AddPostField("block_length", strTmp);				// block_length
-			conn.AddPostField("computer_name", szComputerName);		// computer_name
-			conn.AddPostField("cpu_brand", strCPUBrand);			// cpu_brand
-
-			if (!conn.Execute())
-			{
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-			if (conn.GetErrorCode() != ERR_SUCCESS)
-			{
-				if (conn.GetErrorCode() == ERR_TASK_OUTDATED)
-				{
-					csCompleted.Lock();
-					pDlg->m_completedTaskQueue.RemoveHead();
-					csCompleted.Unlock();
-					pDlg->SendMessage(WM_WRITELOG);
-					continue;
-				}
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-			csCompleted.Lock();
-			pDlg->m_completedTaskQueue.RemoveHead();
-			csCompleted.Unlock();
-			pDlg->m_tTime = 0;
-			pDlg->SendMessage(WM_WRITELOG);
-			csCompleted.Lock();
 		}
-		csCompleted.Unlock();
 		pDlg->SendMessage(WM_THREADOPEN);
 		pDlg->OnBnClickedRefreshRank();
 	}
 
-
-	// get new task
+	// Fill task lists
 	if (bDownload)
 	{
-		RamseyXTask task;
-		csRunning.Lock();
-		csTodo.Lock();
-		int nDownNum = pDlg->m_nThreadNum * 8 - pDlg->m_runningTaskQueue.GetCount() - pDlg->m_todoTaskQueue.GetCount();
-		csRunning.Unlock();
-		csTodo.Unlock();
-		while (nDownNum-- > 0)
-		{
-			if (!conn.StandardOpt("www.ramseyx.org/get_new_task.php") || !conn.SetPost())
-			{
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-		
-			CStringA strPVer, strSVer;
-			strPVer.Format("%d", PRIMARY_VERSION);
-			strSVer.Format("%d", SECONDARY_VERSION);
-		
-			conn.AddPostField("p_ver", strPVer);
-			conn.AddPostField("s_ver", strSVer);
-			conn.AddPostField("username", strUsername);
-			conn.AddPostField("password", strPassword);
-				
-			if (!conn.Execute())
-			{
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-			if (conn.GetErrorCode() != ERR_SUCCESS)
-			{
-				if (conn.GetErrorCode() == ERR_NO_NEW_TASK)
-					break;
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-		
-			RXTASKINFO *pNewTask = new RXTASKINFO;
-			TCHAR lszVerificationCode[100] = {0};
-			swscanf_s(conn.GetString(), _T("%llu %llu %llu %s"), &pNewTask->id, &pNewTask->combinationNum, &pNewTask->block, lszVerificationCode, sizeof (lszVerificationCode));
-			// task_id combination_num block verification_code
-		
-			if (!conn.StandardOpt("www.ramseyx.org/confirm_task.php") || !conn.SetPost())
-			{
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-			
-			CStringA strTID;
-			strTID.Format("%llu", pNewTask->id);
-			conn.AddPostField("username", strUsername);
-			conn.AddPostField("task_id", strTID);
-			conn.AddPostField("verification_code", CStringA(lszVerificationCode));
-
-			if (!conn.Execute())
-			{
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-			if (conn.GetErrorCode() != ERR_SUCCESS)
-			{
-				pDlg->m_bIsAutoUploading = false;
-				return 0;
-			}
-
-			pNewTask->offset = 0;
-			pDlg->SendMessage(WM_NEWTASK, 0, reinterpret_cast<LPARAM>(pNewTask));
-			pDlg->SendMessage(WM_WRITELOG);
-		}
+		pDlg->m_controller.fillTaskLists(LPCTSTR(pDlg->m_strUsername),
+			LPCTSTR(pDlg->m_strPassword));
 		pDlg->SendMessage(WM_THREADOPEN);
 	}
 
 	pDlg->SendMessage(WM_UPDATESTATUS);
 
-	if (!pDlg->m_bIsRunning)// && pDlg->m_bWasRunning)
-			pDlg->OnBnClickedStart();
+	if (!pDlg->m_controller.isRunning() && pDlg->m_bWasRunning)
+		pDlg->OnBnClickedStart();
 
 	pDlg->m_bIsAutoUploading = false;
 
@@ -522,13 +322,13 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 	enum { IDD = IDD_ABOUTBOX };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
-// 实现
+	// 实现
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
@@ -552,29 +352,21 @@ END_MESSAGE_MAP()
 // CRamseyXDlg 对话框
 CRamseyXDlg::CRamseyXDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CRamseyXDlg::IDD, pParent),
-	  m_uID(0),
-	  m_nCoreNum(0),
-	  m_nThreadNum(0),
-	  m_tTime(0),
-	  m_tLastLog(0),
-	  m_tLastBenchmark(0),
-	  m_nCPULimit(0),
-	  m_bIsRunning(false),
-	  m_bWasRunning(false),
-	  m_bIsAuto(false),
-	  m_bIsUpdating(false),
-	  m_bIsLocked(false),
-	  m_bIsExiting(false),
-	  m_bIsAutoUploading(false),
-	  m_hTimerQueue(NULL),
-	  m_aWorkingThreads(NULL),
-	  m_aTasks(NULL),
-	  m_fVAX_MIPS(0.0f),
-	  m_fTotalVAX_MIPS(0.0f)
+	m_uID(0),
+	m_nCoreNum(0),
+	m_nThreadNum(0),
+	m_nCPULimit(0),
+	m_bWasRunning(false),
+	m_bIsAuto(false),
+	m_bIsUpdating(false),
+	m_bIsLocked(false),
+	m_bIsExiting(false),
+	m_hTimerQueue(nullptr),
+	m_fVAX_MIPS(0.0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	memset(m_aTimerHandles, NULL, sizeof (m_aTimerHandles));
+	memset(m_aTimerHandles, 0, sizeof (m_aTimerHandles));
 }
 
 void CRamseyXDlg::DoDataExchange(CDataExchange* pDX)
@@ -585,235 +377,56 @@ void CRamseyXDlg::DoDataExchange(CDataExchange* pDX)
 CString CRamseyXDlg::GetStatus()
 {
 	CString str(_T("最后保存: ")
-		+ CTime(m_tLastLog).Format(_T("%c"))
+		+ CTime(m_controller.getLastLog()).Format(_T("%c"))
 		+ _T("\r\n"));
 	str.Format(_T("%s单线程算力：%.1f DMIPS\r\n"), str, m_fVAX_MIPS);
-	if (m_bIsRunning)
+	if (m_controller.isRunning())
 	{
-		int nPos = m_tTime % 20;
+		int nPos = m_controller.getTime() % 20;
 		str += _T("状态：运算中 [");
-		for (int i = 0; i < nPos; i++)
+		for (int i = 0; i < nPos; ++i)
 			str += _T(' ');
 		str += _T('●');
-		for (int i = nPos + 1; i < 20; i++)
+		for (int i = nPos + 1; i < 20; ++i)
 			str += _T(' ');
 		str += _T("]\r\n");
 	}
 	else
 		str += _T("状态：暂停中 [●                   ]\r\n");
-	str.Format(_T("%s运算时长：%llu秒\r\n-------------------------------------\r\n"), str, m_tTime);
-	
-	csBatch.Lock();
-	POSITION pos = m_batchQueue.GetHeadPosition();
-	while (pos)
-	{
-		RXBATCHINFO batch = m_batchQueue.GetAt(pos);
-		int nCompleted = 0;
-		for (int i = 0; i < batch.numOfTasks; i++)
-			if (batch.taskCompleted[i])
-				nCompleted++;
-		str.Format(_T("%sBatch_%llu_%d_%d_%d: %.2f%%\r\n"), str, m_uID, batch.identifier, batch.numOfTasks, batch.clockID, nCompleted * 100.0 / batch.numOfTasks);
-		m_batchQueue.GetNext(pos);
-	}
-	csBatch.Unlock();
-	
-	/*// 进行中任务
-	csRunning.Lock();
-	//str.Format(_T("%s进行中任务：%d\r\n"), str, m_runningTaskQueue.GetCount());
-	pos = m_runningTaskQueue.GetHeadPosition();
-	while (pos)
-	{
-		RXTASKINFO info = m_runningTaskQueue.GetAt(pos);
-		if (m_aTasks[info.threadID] && m_aTasks[info.threadID]->located)
-		{
-			info.offset = m_aTasks[info.threadID]->progress - m_aTasks[info.threadID]->blockBegin;
-			info.complexity += m_aTasks[info.threadID]->complexity;
-			m_aTasks[info.threadID]->complexity = 0;
-			m_runningTaskQueue.SetAt(pos, info);
-		}
-		m_runningTaskQueue.GetNext(pos);
-		//str.Format(_T("%sTask #%06llu：%.2f%%\r\n"), str, info.id, info.offset * 100.0 / info.blockLength);
-	}
-	csRunning.Unlock();
+	str.Format(_T("%s运算时长：%llu秒\r\n-------------------------------------\r\n"), str, m_controller.getTime());
 
-	/*csTodo.Lock();
+	std::list<RXPRINT> runningPrint, todoPrint, completedPrint;
+	m_controller.getStatus(runningPrint, todoPrint, completedPrint);
+
+	// 进行中任务
+	str.Format(_T("%s进行中任务：%u\r\n"), str, runningPrint.size());
+	for (const auto &t : runningPrint)
+		str.Format(_T("%s●Task #%06llu_L%u：%.2f%%\r\n     截止：%s\r\n"),
+			str, t.id, t.layer, t.progress, CTime(t.deadline).Format(_T("%c")));
+
 	// 等待中任务
-	str.Format(_T("%s-------------------------------------\r\n等待中任务：%d\r\n"), str, m_todoTaskQueue.GetCount());
-	pos = m_todoTaskQueue.GetHeadPosition();
-	for (int i = 0; i < m_todoTaskQueue.GetCount() && i < 3; i++)
+	str.Format(_T("%s-------------------------------------\r\n等待中任务：%d\r\n"), str, todoPrint.size());
+	int i = 0;
+	for (auto t = todoPrint.begin(); i < 3 && t != todoPrint.end(); ++i, ++t)
 	{
-		RXTASKINFO info = m_todoTaskQueue.GetNext(pos);
-		str.Format(_T("%sTask #%06llu：%.2f%%\r\n"), str, info.id, info.offset * 100.0 / info.blockLength);
+		str.Format(_T("%s●Task #%06llu_L%u：%.2f%%\r\n     截止：%s\r\n"),
+			str, t->id, t->layer, t->progress, CTime(t->deadline).Format(_T("%c")));
 	}
-	if (m_todoTaskQueue.GetCount() > 3)
-		str.Format(_T("%s(%d more...)\r\n"), str, m_todoTaskQueue.GetCount() - 3);
-	csTodo.Unlock();
+	if (todoPrint.size() > 3)
+		str.Format(_T("%s(%d more...)\r\n"), str, todoPrint.size() - 3);
 
-	csCompleted.Lock();
-	
 	// 已完成任务
-	str.Format(_T("%s-------------------------------------\r\n已完成任务：%d\r\n"), str, m_completedTaskQueue.GetCount());
-	pos = m_completedTaskQueue.GetHeadPosition();
-	for (int i = 0; i < m_completedTaskQueue.GetCount() && i < 3; i++)
+	str.Format(_T("%s-------------------------------------\r\n已完成任务：%d\r\n"), str, completedPrint.size());
+	i = 0;
+	for (auto t = completedPrint.begin(); i < 3 && t != completedPrint.end(); ++i, ++t)
 	{
-		RXTASKINFO info = m_completedTaskQueue.GetNext(pos);
-		str.Format(_T("%sTask #%06llu：%.2f%%\r\n"), str, info.id, info.offset * 100.0 / info.blockLength);
+		str.Format(_T("%s●Task #%06llu_L%u：100.0%%\r\n     截止：%s\r\n"),
+			str, t->id, t->layer, CTime(t->deadline).Format(_T("%c")));
 	}
-	if (m_completedTaskQueue.GetCount() > 3)
-		str.Format(_T("%s(%d more...)\r\n"), str, m_completedTaskQueue.GetCount() - 3);
-	csCompleted.Unlock();*/
+	if (completedPrint.size() > 3)
+		str.Format(_T("%s(%d more...)\r\n"), str, completedPrint.size() - 3);
 
 	return str;
-}
-
-BOOL CRamseyXDlg::WriteLog()
-{
-	// 文件格式
-	/*
-	time_t m_tLastLog
-	time_t m_tTime
-	int    m_runningTaskQueue.GetCount()
-	RXTASKINFOs
-	int    m_todoTaskQueue.GetCount()
-	RXTASKINFOs
-	int    m_completedTaskQueue.GetCount()
-	RXTASKINFOs
-	*/
-	csWriteLog.Lock();
-	
-	CFile file;
-	if (!file.Open(m_strDir + _T("RamseyX.data5"), CFile::modeCreate | CFile::modeWrite))
-	{
-		csWriteLog.Unlock();
-		return FALSE;
-	}
-
-	m_tLastLog = CTime::GetCurrentTime().GetTime();
-	file.Write(&m_tLastLog, sizeof (time_t));
-	file.Write(&m_tTime, sizeof (time_t));
-	
-	csRunning.Lock();
-	int nSize = m_runningTaskQueue.GetCount();
-	file.Write(&nSize, sizeof (int));
-	POSITION pos = m_runningTaskQueue.GetHeadPosition();
-	while (pos)
-		file.Write(&m_runningTaskQueue.GetNext(pos),  sizeof (RXTASKINFO));
-	csRunning.Unlock();
-
-	csTodo.Lock();
-	nSize = m_todoTaskQueue.GetCount();
-	file.Write(&nSize, sizeof (int));
-	pos = m_todoTaskQueue.GetHeadPosition();
-	while (pos)
-		file.Write(&m_todoTaskQueue.GetNext(pos),  sizeof (RXTASKINFO));
-	csTodo.Unlock();
-	
-	csCompleted.Lock();
-	nSize = m_completedTaskQueue.GetCount();
-	file.Write(&nSize, sizeof (int));
-	pos = m_completedTaskQueue.GetHeadPosition();
-	while (pos)
-		file.Write(&m_completedTaskQueue.GetNext(pos),  sizeof (RXTASKINFO));
-	csCompleted.Unlock();
-
-	file.Close();
-
-	csWriteLog.Unlock();
-
-	return TRUE;
-}
-
-BOOL CRamseyXDlg::ReadLog()
-{
-	CFile file;
-
-	// 文件不存在
-	if (!file.Open(m_strDir + _T("RamseyX.data5"), CFile::modeRead))
-		return FALSE;
-
-	// 文件格式错误
-	if (sizeof (time_t) != file.Read(&m_tLastLog, sizeof (time_t)))
-		return FALSE;
-	if (sizeof (time_t) != file.Read(&m_tTime, sizeof (time_t)))
-		return FALSE;
-	
-	int nSize;
-	RXTASKINFO info;
-
-	if (sizeof (int) != file.Read(&nSize, sizeof (int)))
-		return FALSE;
-	for (int i = 0; i < nSize; i++)
-	{
-		if (sizeof (RXTASKINFO) != file.Read(&info, sizeof (RXTASKINFO)))
-			return FALSE;
-		if (i < m_nThreadNum)
-		{
-			info.threadID = i;
-			csRunning.Lock();
-			m_runningTaskQueue.AddTail(info);
-			csRunning.Unlock();
-			m_aWorkingThreads[i] = AfxBeginThread(ThreadProc, reinterpret_cast<LPVOID>(i), 0, 0, CREATE_SUSPENDED);
-		}
-		else
-		{
-			csTodo.Lock();
-			m_todoTaskQueue.AddTail(info);
-			csTodo.Unlock();
-		}
-	}
-
-	if (sizeof (int) != file.Read(&nSize, sizeof (int)))
-		return FALSE;
-	for (int i = 0; i < nSize; i++)
-	{
-		if (sizeof (RXTASKINFO) != file.Read(&info, sizeof (RXTASKINFO)))
-			return FALSE;
-		csTodo.Lock();
-		m_todoTaskQueue.AddTail(info);
-		csTodo.Unlock();
-	}
-
-	if (sizeof (int) != file.Read(&nSize, sizeof (int)))
-		return FALSE;
-	for (int i = 0; i < nSize; i++)
-	{
-		if (sizeof (RXTASKINFO) != file.Read(&info, sizeof (RXTASKINFO)))
-			return FALSE;
-		csCompleted.Lock();
-		m_completedTaskQueue.AddTail(info);
-		csCompleted.Unlock();
-	}
-
-	return TRUE;
-}
-
-void CRamseyXDlg::AddNewTask(RXTASKINFO &info)
-{
-	info.complexity = info.offset = 0;
-	info.deadline = time(NULL) + MAX_DAYS * 24 * 3600;
-
-	int i;
-	for (i = 0; i < m_nThreadNum; i++)
-		if (m_aWorkingThreads[i] == NULL)
-			break;
-	if (i < m_nThreadNum)
-	{
-		// add to m_runningTaskQueue
-		info.threadID = i;
-		csRunning.Lock();
-		m_runningTaskQueue.AddTail(info);
-		csRunning.Unlock();
-		if (m_bIsRunning)
-			m_aWorkingThreads[i] = AfxBeginThread(ThreadProc, reinterpret_cast<LPVOID>(i));
-		else
-			m_aWorkingThreads[i] = AfxBeginThread(ThreadProc, reinterpret_cast<LPVOID>(i), 0, 0, CREATE_SUSPENDED);
-	}
-	else
-	{
-		csTodo.Lock();
-		m_todoTaskQueue.AddTail(info); // add to m_todoTaskQueue
-		csTodo.Unlock();
-	}
 }
 
 VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN TimerOrWaitFired)
@@ -822,8 +435,7 @@ VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 	switch (reinterpret_cast<UINT>(lpParam))
 	{
 	case 1:	// Update
-		pDlg->m_tTime++;
-		pDlg->m_fTotalVAX_MIPS += pDlg->m_fVAX_MIPS * pDlg->m_nThreadNum;
+		pDlg->m_controller.incrementTime();
 		pDlg->SendMessage(WM_UPDATESTATUS);
 		break;
 	case 2:	// Log
@@ -831,9 +443,9 @@ VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 		break;
 	case 3:	// Fetch whatsup & Check for update & Update benchmark
 		pDlg->SendMessage(WM_CLROUTDATED);
-		AfxBeginThread(FetchProc, NULL);
+		AfxBeginThread(FetchProc, nullptr);
 		if (pDlg->m_bIsLocked)
-			AfxBeginThread(UpdateBenchmarkProc, NULL);
+			AfxBeginThread(UpdateBenchmarkProc, nullptr);
 		break;
 	case 4:	// Auto upload
 		pDlg->SendMessage(WM_AUTOUPLOAD);
@@ -844,20 +456,20 @@ VOID CALLBACK TimerRoutine(PVOID lpParam, BOOLEAN TimerOrWaitFired)
 }
 
 // 1 - succeeded
-// NULL - failed
+// 0 - failed
 UINT_PTR CRamseyXDlg::SetTimer(UINT_PTR nIDEvent, UINT nElapse,
-		void (CALLBACK* lpfnTimer)(HWND, UINT, UINT_PTR, DWORD))
+	void (CALLBACK* lpfnTimer)(HWND, UINT, UINT_PTR, DWORD))
 {
 	if (nIDEvent <= 0 || nIDEvent >= 10)
-		return NULL;
+		return 0;
 	if (!KillTimer(nIDEvent))
-		return NULL;
+		return 0;
 
-	if (!::CreateTimerQueueTimer(&(m_aTimerHandles[nIDEvent]), m_hTimerQueue, 
-            (WAITORTIMERCALLBACK)TimerRoutine, reinterpret_cast<PVOID>(nIDEvent), nElapse, nElapse, WT_EXECUTEDEFAULT))
+	if (!::CreateTimerQueueTimer(&(m_aTimerHandles[nIDEvent]), m_hTimerQueue,
+		(WAITORTIMERCALLBACK)TimerRoutine, reinterpret_cast<PVOID>(nIDEvent), nElapse, nElapse, WT_EXECUTEDEFAULT))
 	{
-		m_aTimerHandles[nIDEvent] = NULL;
-		return NULL;
+		m_aTimerHandles[nIDEvent] = nullptr;
+		return 0;
 	}
 	return 1;
 }
@@ -869,13 +481,9 @@ BOOL CRamseyXDlg::KillTimer(UINT_PTR nIDEvent)
 	if (!m_aTimerHandles[nIDEvent])
 		return TRUE;
 
-	if (::DeleteTimerQueueTimer(m_hTimerQueue, m_aTimerHandles[nIDEvent], NULL))
-	{
-		m_aTimerHandles[nIDEvent] = NULL;
-		return TRUE;
-	}
-	else
-		return FALSE;
+	::DeleteTimerQueueTimer(m_hTimerQueue, m_aTimerHandles[nIDEvent], nullptr);
+	m_aTimerHandles[nIDEvent] = nullptr;
+	return TRUE;
 }
 
 
@@ -891,8 +499,6 @@ BEGIN_MESSAGE_MAP(CRamseyXDlg, CDialogEx)
 	ON_MESSAGE(WM_UPDATESTATUS, &CRamseyXDlg::OnUpdateStatus)
 	ON_MESSAGE(WM_ENABLECTRL, &CRamseyXDlg::OnEnableCtrl)
 	ON_MESSAGE(WM_CLEARMYLIST, &CRamseyXDlg::OnClearMyList)
-	ON_MESSAGE(WM_NEWTASK, &CRamseyXDlg::OnNewTask)
-	ON_MESSAGE(WM_NEWBATCH, &CRamseyXDlg::OnNewBatch)
 	ON_MESSAGE(WM_AUTOUPLOAD, &CRamseyXDlg::OnAutoUpload)
 	ON_MESSAGE(WM_WRITELOG, &CRamseyXDlg::OnWriteLog)
 	ON_MESSAGE(WM_CLROUTDATED, &CRamseyXDlg::OnClrOutdated)
@@ -935,15 +541,13 @@ BOOL CRamseyXDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
-	
+
 	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	::curl_global_init(CURL_GLOBAL_DEFAULT);
-
 	m_bIsAuto = (CString(AfxGetApp()->m_lpCmdLine).Find(_T("-auto")) >= 0);
 
 	// 显示启动画面
@@ -959,14 +563,14 @@ BOOL CRamseyXDlg::OnInitDialog()
 
 	// 设置工作目录
 	TCHAR lszBuffer[MAX_PATH + 2];
-	::GetModuleFileName(NULL, lszBuffer, MAX_PATH);
+	::GetModuleFileName(nullptr, lszBuffer, MAX_PATH);
 	for (int i = lstrlen(lszBuffer) - 1; i >= 0 && lszBuffer[i] != _T('\\'); i--)
 		lszBuffer[i] = _T('\0');
 	::SetCurrentDirectory(lszBuffer);
 
 	// 获取开机运行状态
 	CRegKey reg;
-	::GetModuleFileName(NULL, lszBuffer, MAX_PATH);
+	::GetModuleFileName(nullptr, lszBuffer, MAX_PATH);
 	lstrcpy(lszBuffer + lstrlen(lszBuffer), _T("\" -auto"));
 	TCHAR lszValue[MAX_PATH + 2];
 	DWORD dwCnt;
@@ -987,19 +591,16 @@ BOOL CRamseyXDlg::OnInitDialog()
 	reg.Close();
 
 	// 获取AppData目录
-	::SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, lszBuffer);
+	::SHGetFolderPath(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, 0, lszBuffer);
 	m_strDir = lszBuffer + CString(_T("\\RamseyX\\"));
-	::CreateDirectory(m_strDir, NULL);
+	::CreateDirectory(m_strDir, nullptr);
+	m_controller.setLogDir(lszBuffer + std::wstring(L"\\RamseyX\\"));
 
 	// 获取CPU信息
 	SYSTEM_INFO si;
 	::GetSystemInfo(&si);
 	m_nCoreNum = si.dwNumberOfProcessors;
 	m_nThreadNum = m_nCoreNum;
-	m_aWorkingThreads = new CWinThread *[m_nCoreNum];
-	m_aTasks = new RamseyXTask *[m_nCoreNum];
-	memset(m_aWorkingThreads, NULL, sizeof (CWinThread *) * m_nCoreNum);
-	memset(m_aTasks, NULL, sizeof (RamseyXTask *) * m_nCoreNum);
 
 	CFile file;
 	// 载入速度线程设置
@@ -1019,37 +620,32 @@ BOOL CRamseyXDlg::OnInitDialog()
 		}
 		file.Close();
 	}
+	m_controller.setMaxThreadNum(m_nThreadNum);
 	m_nCPULimit = 100; // TODO
 
 	// 载入本地日志
 	::DeleteFile(m_strDir + _T("RamseyX.data4"));
-	if (!ReadLog())	// 不存在或格式错误
-	{
-		m_tTime = 0;
-		m_runningTaskQueue.RemoveAll();
-		m_todoTaskQueue.RemoveAll();
-		m_completedTaskQueue.RemoveAll();
-		WriteLog();
-	}
-	
+	if (!m_controller.readLog())	// 不存在或格式错误
+		m_controller.resetLog();
+
 	// 载入账户设置
 	if (file.Open(m_strDir + _T("RamseyX.ac"), CFile::modeRead))
 	{
 		TCHAR lszBuf[100];
 		int nLen;
-		
+
 		VERIFY(sizeof (int) == file.Read(&nLen, sizeof (int)));
-		VERIFY(sizeof (TCHAR) * nLen == file.Read(lszBuf, sizeof (TCHAR) * nLen));
+		VERIFY(sizeof (TCHAR) * nLen == file.Read(lszBuf, sizeof (TCHAR)* nLen));
 		m_strUsername = lszBuf;
 
 		VERIFY(sizeof (int) == file.Read(&nLen, sizeof (int)));
-		VERIFY(sizeof (TCHAR) * nLen == file.Read(lszBuf, sizeof (TCHAR) * nLen));
+		VERIFY(sizeof (TCHAR) * nLen == file.Read(lszBuf, sizeof (TCHAR)* nLen));
 		m_strPassword = lszBuf;
 
 		VERIFY(sizeof (unsigned long long) == file.Read(&m_uID, sizeof (unsigned long long)));
 		file.Close();
 
-		SetTimer(4, 60000, NULL);
+		SetTimer(4, 60000, nullptr);
 		m_bIsLocked = true;
 		GetDlgItem(IDC_ME_CAPTION)->SetWindowText(m_strUsername + _T(" 的战绩："));
 		GetDlgItem(IDC_GET_NEW_TASK_TIP)->SetWindowText(_T(""));
@@ -1093,10 +689,10 @@ BOOL CRamseyXDlg::OnInitDialog()
 
 	pList->InsertColumn(0, _T("排行"), 0, 40);
 	pList->InsertColumn(1, _T("用户名"), LVCFMT_RIGHT, 100);
-	pList->InsertColumn(2, _T("积分"), LVCFMT_RIGHT, 70);
+	pList->InsertColumn(2, _T("积分"), LVCFMT_RIGHT, 80);
 	pList->InsertColumn(3, _T("完成任务数"), LVCFMT_RIGHT, 80);
 	pList->InsertColumn(4, _T("总时长(日)"), LVCFMT_RIGHT, 75);
-	pList->InsertColumn(5, _T("当前在线算力(DMIPS)"), LVCFMT_RIGHT, 145);
+	pList->InsertColumn(5, _T("当前在线算力(DMIPS)"), LVCFMT_RIGHT, 135);
 
 	col.mask = LVCF_FMT;
 	col.fmt = LVCFMT_RIGHT;
@@ -1126,9 +722,11 @@ BOOL CRamseyXDlg::OnInitDialog()
 		splash.SendMessage(WM_INIT, TRUE);
 		splash.SendMessage(WM_BENCHMARK, FALSE);
 	}
-	m_fVAX_MIPS = 5000.0f; //::Benchmark();
+	m_fVAX_MIPS = 5000.0; //::Benchmark();
+	
 	//RamseyXTask task;
-	//task.printSQLScript(0, 0);
+	//task.printSQLScript();
+
 	if (!m_bIsAuto)
 		splash.SendMessage(WM_BENCHMARK, TRUE);
 
@@ -1136,8 +734,8 @@ BOOL CRamseyXDlg::OnInitDialog()
 		pList->EnableWindow(FALSE);
 
 	// 获取动态
-	SetTimer(3, 600000, NULL);
-	
+	SetTimer(3, 600000, nullptr);
+
 	// 立即获取动态
 	OnBnClickedFetchNow();
 
@@ -1171,9 +769,29 @@ BOOL CRamseyXDlg::OnInitDialog()
 		nid.uFlags |= NIF_INFO;
 	}
 	::Shell_NotifyIcon(NIM_ADD, &nid);
-	
+
+	AfxMessageBox(RamseyXUtils::getCPUBrandString().c_str());
+
+	RXTASKINFO info;
+	info.block = info.combinationNum = info.complexity = info.id = info.offset = 0;
+	info.result = LAUNCH_INCOMPLETE;
+	info.deadline = std::time(nullptr) + MAX_DAYS * 24 * 3600;
+	info.layer = 1;
+	m_controller.addNewTask(info);
+	/*++info.id;
+	m_controller.addNewTask(info);
+	++info.id;
+	m_controller.addNewTask(info);
+	++info.id;
+	m_controller.addNewTask(info);
+	++info.id;
+	m_controller.addNewTask(info);
+	++info.id;
+	m_controller.addNewTask(info);*/
+
 	// 刷新状态
 	GetDlgItem(IDC_STATUS)->SetWindowText(GetStatus());
+	SendMessage(WM_WRITELOG);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -1235,11 +853,12 @@ HCURSOR CRamseyXDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
 void CRamseyXDlg::OnClose()
 {
 	if (!m_bIsUpdating && MessageBox(_T("确定要退出 RamseyX 运算客户端吗？"), _T("RamseyX 运算客户端"), MB_OKCANCEL | MB_ICONQUESTION) == IDCANCEL)
 		return;
+
+	m_controller.pause();
 
 	NOTIFYICONDATA nid;
 	nid.cbSize = sizeof (NOTIFYICONDATA);
@@ -1249,53 +868,32 @@ void CRamseyXDlg::OnClose()
 
 	::DeleteTimerQueue(m_hTimerQueue);
 
-	for (int i = 0; i < m_nThreadNum; i++)
-		if (m_aWorkingThreads[i])
-		{
-			::TerminateThread(m_aWorkingThreads[i]->m_hThread, 0);
-			if (m_aTasks[i])
-				delete m_aTasks[i];
-		}
-	delete [] m_aWorkingThreads;
-	delete [] m_aTasks;
-
 	CDialogEx::OnClose();
 }
 
-
 void CRamseyXDlg::OnBnClickedStart()
 {
-	if (m_bIsRunning)
+	if (m_controller.isRunning())
 	{
-		for (int i = 0; i < m_nThreadNum; i++)
-			if (m_aWorkingThreads[i])
-				m_aWorkingThreads[i]->SuspendThread();
+		m_controller.pause();
 
 		KillTimer(1);
 		KillTimer(2);
-		m_bIsRunning = m_bWasRunning = false;
+		m_bWasRunning = false;
 		GetDlgItem(IDC_START)->SetWindowText(_T("开始运算(&S)"));
 		GetDlgItem(IDC_STATUS)->SetWindowText(GetStatus());
 	}
 	else
 	{
-		csRunning.Lock();
-		if (m_runningTaskQueue.IsEmpty())
+		if (!m_controller.run())
 		{
-			csRunning.Unlock();
-			//MessageBox(_T("当前没有可进行的任务。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
+			MessageBox(_T("当前没有可进行的任务。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
 			return;
 		}
-		csRunning.Unlock();
-		
-		for (int i = 0; i < m_nThreadNum; i++)
-			if (m_aWorkingThreads[i])
-				m_aWorkingThreads[i]->ResumeThread();
-			
-		SetTimer(1, 1000, NULL);
-		SetTimer(2, 10000, NULL);
-		m_tLastBenchmark = CTime::GetCurrentTime().GetTime();
-		m_bIsRunning = true;
+
+		SetTimer(1, 1000, nullptr);
+		SetTimer(2, 10000, nullptr);
+		m_bWasRunning = true;
 		GetDlgItem(IDC_START)->SetWindowText(_T("暂停运算(&S)"));
 		GetDlgItem(IDC_STATUS)->SetWindowText(GetStatus());
 	}
@@ -1320,7 +918,7 @@ LRESULT CRamseyXDlg::OnNI(WPARAM wParam, LPARAM lParam)
 		SetForegroundWindow();
 		::GetCursorPos(&pt);
 		menu.LoadMenu(IDR_MENU_NI);
-		if (m_bIsRunning)
+		if (m_controller.isRunning())
 			menu.GetSubMenu(0)->ModifyMenu(IDC_START, MF_BYCOMMAND, IDC_START, _T("暂停运算(&S)"));
 		menu.GetSubMenu(0)->TrackPopupMenu(TPM_RIGHTALIGN, pt.x, pt.y, this);
 		break;
@@ -1332,39 +930,6 @@ LRESULT CRamseyXDlg::OnNI(WPARAM wParam, LPARAM lParam)
 
 LRESULT CRamseyXDlg::OnThreadOpen(WPARAM wParam, LPARAM lParam)
 {
-	csTodo.Lock();
-	csRunning.Lock();
-	while (!m_todoTaskQueue.IsEmpty() && m_runningTaskQueue.GetCount() < m_nThreadNum)
-	{
-		RXTASKINFO info = m_todoTaskQueue.GetHead();
-		int i;
-		for (i = 0; i < m_nThreadNum; i++)
-			if (m_aWorkingThreads[i] == NULL)
-				break;
-		if (i < m_nThreadNum)
-		{
-			info.threadID = i;
-			m_runningTaskQueue.AddTail(info);
-			m_todoTaskQueue.RemoveHead();
-			if (m_bIsRunning)
-				m_aWorkingThreads[i] = AfxBeginThread(ThreadProc, reinterpret_cast<LPVOID>(i));
-			else
-				m_aWorkingThreads[i] = AfxBeginThread(ThreadProc, reinterpret_cast<LPVOID>(i), 0, 0, CREATE_SUSPENDED);
-		}
-		else
-			break;
-	}
-
-	if (m_runningTaskQueue.IsEmpty() && m_todoTaskQueue.IsEmpty() && m_bIsRunning)
-	{
-		m_bWasRunning = true;
-		OnBnClickedStart();
-		SendMessage(WM_AUTOUPLOAD);
-	}
-	csTodo.Unlock();
-	csRunning.Unlock();
-
-	//GetDlgItem(IDC_STATUS)->SetWindowText(GetStatus());
 	return 0;
 }
 
@@ -1373,12 +938,10 @@ void CRamseyXDlg::OnShow()
 	ShowWindow(SW_SHOW);
 }
 
-
 void CRamseyXDlg::OnExit()
 {
 	SendMessage(WM_CLOSE);
 }
-
 
 void CRamseyXDlg::OnBnClickedUpload()
 {
@@ -1387,7 +950,6 @@ void CRamseyXDlg::OnBnClickedUpload()
 	dlg.DoModal();
 }
 
-
 void CRamseyXDlg::OnBnClickedAuto()
 {
 	CRegKey reg;
@@ -1395,7 +957,7 @@ void CRamseyXDlg::OnBnClickedAuto()
 	if (IsDlgButtonChecked(IDC_AUTO) == 1)
 	{
 		TCHAR lszBuffer[MAX_PATH + 2];
-		::GetModuleFileName(NULL, lszBuffer, MAX_PATH);
+		::GetModuleFileName(nullptr, lszBuffer, MAX_PATH);
 		lstrcpy(lszBuffer + lstrlen(lszBuffer), _T("\" -auto"));
 		VERIFY(ERROR_SUCCESS == reg.SetStringValue(_T("RamseyX"), _T('\"') + CString(lszBuffer)));
 	}
@@ -1420,36 +982,35 @@ void CRamseyXDlg::StoreAccount() const
 	CFile file;
 	::DeleteFile(m_strDir + _T("RamseyX.ac"));
 	if (m_bIsLocked)
-		if (file.Open(m_strDir + _T("RamseyX.ac"), CFile::modeCreate | CFile::modeWrite))
-		{
-			TCHAR lszBuffer[100];
+	if (file.Open(m_strDir + _T("RamseyX.ac"), CFile::modeCreate | CFile::modeWrite))
+	{
+		TCHAR lszBuffer[100];
 
-			lstrcpy(lszBuffer, m_strUsername);
-			int nLen = lstrlen(lszBuffer) + 1;
-			file.Write(&nLen, sizeof (int));
-			file.Write(lszBuffer, sizeof (TCHAR) * nLen);
-			
-			lstrcpy(lszBuffer, m_strPassword);
-			nLen = lstrlen(lszBuffer) + 1;
-			file.Write(&nLen, sizeof (int));
-			file.Write(lszBuffer, sizeof (TCHAR) * nLen);
+		lstrcpy(lszBuffer, m_strUsername);
+		int nLen = lstrlen(lszBuffer) + 1;
+		file.Write(&nLen, sizeof (int));
+		file.Write(lszBuffer, sizeof (TCHAR)* nLen);
 
-			file.Write(&m_uID, sizeof (unsigned long long));
-			file.Close();
-		}
+		lstrcpy(lszBuffer, m_strPassword);
+		nLen = lstrlen(lszBuffer) + 1;
+		file.Write(&nLen, sizeof (int));
+		file.Write(lszBuffer, sizeof (TCHAR)* nLen);
+
+		file.Write(&m_uID, sizeof (unsigned long long));
+		file.Close();
+	}
 }
 
 void CRamseyXDlg::OnNMCustomdrawLevel(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
-	
+
 	CString strLimit;
 	strLimit.Format(_T("%d%%"), 101 - static_cast<CSliderCtrl*>(GetDlgItem(IDC_LEVEL))->GetPos());
 	GetDlgItem(IDC_LEVELINFO)->SetWindowText(strLimit);
-	
+
 	*pResult = 0;
 }
-
 
 void CRamseyXDlg::OnNMReleasedcaptureLevel(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -1470,7 +1031,7 @@ BOOL CRamseyXDlg::PreTranslateMessage(MSG* pMsg)
 
 void CRamseyXDlg::OnBnClickedFetchNow()
 {
-	AfxBeginThread(FetchProc, NULL);
+	AfxBeginThread(FetchProc, nullptr);
 }
 
 void CRamseyXDlg::OnNMCustomdrawThread(NMHDR *pNMHDR, LRESULT *pResult)
@@ -1487,47 +1048,24 @@ void CRamseyXDlg::OnNMCustomdrawThread(NMHDR *pNMHDR, LRESULT *pResult)
 void CRamseyXDlg::OnNMReleasedcaptureThread(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	m_nThreadNum = m_nCoreNum - static_cast<CSliderCtrl*>(GetDlgItem(IDC_THREAD))->GetPos() + 1;
-	
-	// 调整进行队列中任务数量
-	
-	// 目前未全开
-	if (m_runningTaskQueue.GetCount() < m_nThreadNum && !m_todoTaskQueue.IsEmpty())
-		SendMessage(WM_THREADOPEN);
-	// 目前超过最大并发
-	else
-	{
-		csRunning.Lock();
-		csTodo.Lock();
-		while (m_runningTaskQueue.GetCount() > m_nThreadNum)
-		{
-			RXTASKINFO info = m_runningTaskQueue.GetTail();
-			::TerminateThread(m_aWorkingThreads[info.threadID]->m_hThread, 0);
-			m_aWorkingThreads[info.threadID] = NULL;
-			delete m_aTasks[info.threadID];
-			m_aTasks[info.threadID] = NULL;
-			m_runningTaskQueue.RemoveTail();
-			m_todoTaskQueue.AddHead(info);
-		}
-		csTodo.Unlock();
-		csRunning.Unlock();
-	}
 
-	WriteLog();
+	m_controller.setMaxThreadNum(m_nThreadNum);
+
+	m_controller.writeLog();
 	StoreLevelSpeed();
 	GetDlgItem(IDC_STATUS)->SetWindowText(GetStatus());
 
 	*pResult = 0;
 }
 
-
 void CRamseyXDlg::OnBnClickedRefreshRank()
 {
-	AfxBeginThread(RefreshRankProc, NULL);
+	AfxBeginThread(RefreshRankProc, nullptr);
 }
 
 void CRamseyXDlg::OnNMClickSyslink(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	::ShellExecute(NULL, _T("open"), _T("http://www.ramseyx.org"), NULL, NULL, SW_SHOW);
+	::ShellExecute(nullptr, _T("open"), _T("http://www.ramseyx.org/"), nullptr, nullptr, SW_SHOW);
 	*pResult = 0;
 }
 
@@ -1546,29 +1084,24 @@ UINT GetNewTaskProc(LPVOID lpParam)
 	pDlg->SendMessage(WM_ENABLECTRL, FALSE, IDC_DISABLE_AUTOUPLOAD);
 	pDlg->SendMessage(WM_ENABLECTRL, FALSE, IDC_DISABLE_AUTODOWNLOAD);
 
-	MyCurlWrapper conn;
-	// check for update
-	if (!conn.StandardOpt(SVR_API("get_version.php")) || !conn.Execute())
-	{
-		pDlg->MessageBox(_T("无法连接到服务器。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
-		GNT_END
-	}
-	if (conn.GetErrorCode() != 0)
+	// Check for update
+	int P = 0, S = 0, T = 0;
+	if (pDlg->m_controller.getVersion(P, S, T) != ERR_SUCCESS)
 	{
 		pDlg->MessageBox(_T("版本验证失败。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
 		GNT_END
 	}
-	int P = 0, S = 0, T = 0;
-	swscanf_s(conn.GetString(), _T("%d %d %d"), &P, &S, &T);
 	if (PRIMARY_VERSION < P || (PRIMARY_VERSION == P && SECONDARY_VERSION < S))
 	{
 		CString strVersion;
 		strVersion.Format(_T("%d.%d.%d"), P, S, T);
 
-		if (IDOK == pDlg->MessageBox(_T("您的客户端版本过低，无法下载新任务，请更新至最新版程序。点击确定立刻更新至 ") + strVersion + _T("。"), _T("RamseyX 运算客户端"), MB_OKCANCEL | MB_ICONINFORMATION))
+		if (IDOK == 
+			pDlg->MessageBox(_T("您的客户端版本过低，无法下载新任务，请更新至最新版程序。点击确定立刻更新至 ") +
+			strVersion + _T("。"), _T("RamseyX 运算客户端"), MB_OKCANCEL | MB_ICONINFORMATION))
 		{
 			TCHAR lszFilename[MAX_PATH + 2] = _T(".\\RamseyXUpdate.exe");
-			SHELLEXECUTEINFO sei = {0};
+			SHELLEXECUTEINFO sei = { 0 };
 			sei.cbSize = sizeof (SHELLEXECUTEINFO);
 			sei.fMask = SEE_MASK_NOCLOSEPROCESS;
 			sei.lpFile = lszFilename;
@@ -1588,77 +1121,35 @@ UINT GetNewTaskProc(LPVOID lpParam)
 			GNT_END
 	}
 
-	// get new task
-	pDlg->GetDlgItem(IDC_GET_NEW_TASK)->SetWindowText(_T("下载中...0%"));
-	if (!conn.StandardOpt(SVR_API("get_new_task.php")) || !conn.SetPost())
+	// Get a new task
+	RXTASKINFO info;
+	switch (pDlg->m_controller.getNewTask(
+		LPCTSTR(pDlg->m_strUsername),
+		LPCTSTR(pDlg->m_strPassword),
+		info))
 	{
-		pDlg->MessageBox(_T("下载新任务失败。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
-		GNT_END
-	}
-	CStringA strPVer, strSVer;
-	strPVer.Format("%d", PRIMARY_VERSION);
-	strSVer.Format("%d", SECONDARY_VERSION);
-	conn.AddPostField("username", CStringA(pDlg->m_strUsername));
-	conn.AddPostField("password", CStringA(pDlg->m_strPassword));
-	conn.AddPostField("p_ver", strPVer);
-	conn.AddPostField("s_ver", strSVer);
-	
-	if (!conn.Execute())
-	{
-		pDlg->MessageBox(_T("无法连接到服务器。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
-		GNT_END
-	}
-	switch (conn.GetErrorCode())
-	{
-	case ERR_SUCCESS:
-		break;
-	case ERR_NO_NEW_TASK:
-		pDlg->MessageBox(_T("暂时没有可用的新任务。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
-		GNT_END
-	default:
-		pDlg->MessageBox(_T("下载新任务失败。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
-		GNT_END
+		case ERR_SUCCESS:
+			break;
+		case ERR_TASK_LISTS_FULL:
+			pDlg->MessageBox(_T("您当前未完成的任务已达到最大线程数的16倍，请先完成当前任务。"),
+				_T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
+			GNT_END
+		case ERR_CONNECTION_FAILED:
+			pDlg->MessageBox(_T("无法连接到服务器。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
+			GNT_END
+		case ERR_NO_NEW_TASK:
+			pDlg->MessageBox(_T("暂时没有可用的新任务。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
+			GNT_END
+		default:
+			pDlg->MessageBox(_T("下载新任务失败。\r\n请稍后重试。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONERROR);
+			GNT_END
 	}
 
-	CString strData(conn.GetString());
-	int nIdentifier = _wtoi(strData);
-	strData = strData.Right(strData.GetLength() - strData.Find(_T(' '), 0) - 1);
-	int nTaskNum = _wtoi(strData);
-	strData = strData.Right(strData.GetLength() - strData.Find(_T(' '), 0) - 1);
-
-	RXBATCHINFO *pNewBatch = new RXBATCHINFO;
-	pNewBatch->numOfTasks = nTaskNum;
-	pNewBatch->identifier = nIdentifier;
-	pNewBatch->localCounter = RXBATCHINFO::counter++;
-
-	CString strTitle;
-	RXTASKINFO *pNewTask = NULL;
-	for (int i = 0; i < nTaskNum; i++)
-	{
-		pNewTask = new RXTASKINFO;
-
-		swscanf_s(strData, _T("%llu %llu %llu"), &pNewTask->id, &pNewTask->combinationNum, &pNewTask->block);
-		strData = strData.Right(strData.GetLength() - strData.Find(_T(' '), 0) - 1);
-		strData = strData.Right(strData.GetLength() - strData.Find(_T(' '), 0) - 1);
-		strData = strData.Right(strData.GetLength() - strData.Find(_T(' '), 0) - 1);
-		
-		pNewBatch->taskID[i] = pNewTask->id;
-		pNewBatch->taskCompleted[i] = false;
-		pNewTask->batch = pNewBatch->localCounter;
-		pNewTask->offset = 0;
-
-		pDlg->SendMessage(WM_NEWTASK, 0, reinterpret_cast<LPARAM>(pNewTask));
-
-		strTitle.Format(_T("下载中...%d%%"), static_cast<int>(i * 100.0 / nTaskNum));
-		pDlg->GetDlgItem(IDC_GET_NEW_TASK)->SetWindowText(strTitle);
-	}
-
-	int nClockID = pNewBatch->clockID = clock();
-	pDlg->SendMessage(WM_NEWBATCH, 0, reinterpret_cast<LPARAM>(pNewBatch));
 	pDlg->SendMessage(WM_THREADOPEN);
 	pDlg->GetDlgItem(IDC_GET_NEW_TASK)->SetWindowText(_T("下载新任务(&N)"));
 	CString strMsg;
-	strMsg.Format(_T("Batch_%llu_%d_%d_%d 成功添加至任务队列。\r\n请在 %d 天内上传计算结果，否则任务将自动失效。"), pDlg->m_uID, nIdentifier, nTaskNum, nClockID, MAX_DAYS);
+	strMsg.Format(_T("Task #%06llu_L%u 成功添加至任务队列。\r\n请在 %s 前上传计算结果，否则任务将自动失效。"),
+		info.id, info.layer, CTime(info.deadline).Format(_T("%c")));
 	pDlg->MessageBox(strMsg, _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
 	pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_GET_NEW_TASK);
 	pDlg->SendMessage(WM_ENABLECTRL, TRUE, IDC_DISABLE_AUTOUPLOAD);
@@ -1669,17 +1160,7 @@ UINT GetNewTaskProc(LPVOID lpParam)
 
 void CRamseyXDlg::OnBnClickedGetNewTask()
 {
-	csBatch.Lock();
-	if (m_batchQueue.GetCount() >= m_nCoreNum * 8)
-	{
-		csBatch.Unlock();
-		MessageBox(_T("您当前等待中的任务已达到CPU核心数的8倍，请先完成当前任务。"), _T("RamseyX 运算客户端"), MB_OK | MB_ICONINFORMATION);
-	}
-	else
-	{
-		csBatch.Unlock();
-		AfxBeginThread(GetNewTaskProc, NULL);
-	}
+	AfxBeginThread(GetNewTaskProc, nullptr);
 }
 
 LRESULT CRamseyXDlg::OnUpdateStatus(WPARAM wParam, LPARAM lParam)
@@ -1704,116 +1185,37 @@ LRESULT CRamseyXDlg::OnClearMyList(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
- LRESULT CRamseyXDlg::OnNewTask(WPARAM wParam, LPARAM lParam)
- {
-	 RXTASKINFO *pInfo = reinterpret_cast<RXTASKINFO *>(lParam);
-	 if (pInfo)
-	 {
-		 AddNewTask(*pInfo);
-		 delete pInfo;
-	 }
-	 return 0;
- }
+LRESULT CRamseyXDlg::OnAutoUpload(WPARAM wParam, LPARAM lParam)
+{
+	bool bUp = !IsDlgButtonChecked(IDC_DISABLE_AUTOUPLOAD);
+	bool bDown = !IsDlgButtonChecked(IDC_DISABLE_AUTODOWNLOAD);
 
- LRESULT CRamseyXDlg::OnNewBatch(WPARAM wParam, LPARAM lParam)
- {
-	 RXBATCHINFO *pInfo = reinterpret_cast<RXBATCHINFO *>(lParam);
-	 if (pInfo)
-	 {
-		 csBatch.Lock();
-		 m_batchQueue.AddTail(*pInfo);
-		 csBatch.Unlock();
-		 WriteLog();
-		 GetDlgItem(IDC_STATUS)->SetWindowText(GetStatus());
-		 delete pInfo;
-	 }
-	 return 0;
- }
+	if (m_bIsAutoUploading || (!bUp && !bDown))
+		return 0;
 
- LRESULT CRamseyXDlg::OnAutoUpload(WPARAM wParam, LPARAM lParam)
- {
-	 bool bUp = !IsDlgButtonChecked(IDC_DISABLE_AUTOUPLOAD) && !m_completedTaskQueue.IsEmpty();
-	 bool bDown = !IsDlgButtonChecked(IDC_DISABLE_AUTODOWNLOAD) && m_runningTaskQueue.GetCount() + m_todoTaskQueue.GetCount() < m_nThreadNum * 8;
+	m_bIsAutoUploading = true;
 
-	 if (m_bIsAutoUploading || (!bUp && !bDown))
-		 return 0;
-	 
-	 m_bIsAutoUploading = true;
+	unsigned int nParam = 0;
 
-	 int nParam = 0;
+	nParam |= (bUp ? 1U : 0U);  // true - upload
+	nParam |= (bDown ? 1U : 0U) << 1;  // true - download
 
-	 nParam |= (bUp ? 1 : 0);  // true - upload
-	 nParam |= (bDown ? 1 : 0) << 1;  // true - download
-	 
-	 AfxBeginThread(AutoUploadProc, reinterpret_cast<LPVOID>(nParam));
-	 
-	 return 0;
- }
+	AfxBeginThread(AutoUploadProc, reinterpret_cast<LPVOID>(nParam));
+
+	return 0;
+}
 
 LRESULT CRamseyXDlg::OnWriteLog(WPARAM wParam, LPARAM lParam)
 {
-	csRunning.Lock();
-	//str.Format(_T("%s进行中任务：%d\r\n"), str, m_runningTaskQueue.GetCount());
-	POSITION pos = m_runningTaskQueue.GetHeadPosition();
-	while (pos)
-	{
-		RXTASKINFO info = m_runningTaskQueue.GetAt(pos);
-		if (m_aTasks[info.threadID] && m_aTasks[info.threadID]->located)
-		{
-			info.offset = m_aTasks[info.threadID]->progress - m_aTasks[info.threadID]->blockBegin;
-			info.complexity += m_aTasks[info.threadID]->complexity;
-			m_aTasks[info.threadID]->complexity = 0;
-			m_runningTaskQueue.SetAt(pos, info);
-		}
-		m_runningTaskQueue.GetNext(pos);
-	}
-	csRunning.Unlock();
+	m_controller.writeLog();
 
-	WriteLog();
 	return 0;
 }
 
 LRESULT CRamseyXDlg::OnClrOutdated(WPARAM wParam, LPARAM lParam)
 {
-	time_t nCurrentTime = time(NULL);
-	POSITION pos;
+	m_controller.clearOutdated();
 
-	// Todo queue
-	csTodo.Lock();
-
-	pos = m_todoTaskQueue.GetHeadPosition();
-	while (pos)
-	{
-		if (m_todoTaskQueue.GetAt(pos).deadline < nCurrentTime)
-		{
-			POSITION del = pos;
-			m_todoTaskQueue.GetNext(pos);
-			m_todoTaskQueue.RemoveAt(del);
-			continue;
-		}
-		m_todoTaskQueue.GetNext(pos);
-	}
-
-	csTodo.Unlock();
-	
-	// Running queue
-	csRunning.Lock();
-
-	pos = m_runningTaskQueue.GetHeadPosition();
-	while (pos)
-	{
-		if (m_runningTaskQueue.GetAt(pos).deadline < nCurrentTime)
-		{
-			POSITION del = pos;
-			m_runningTaskQueue.GetNext(pos);
-			m_runningTaskQueue.RemoveAt(del);
-			continue;
-		}
-		m_runningTaskQueue.GetNext(pos);
-	}
-
-	csRunning.Unlock();
-	
 	return 0;
 }
 
@@ -1821,28 +1223,16 @@ UINT UpdateBenchmarkProc(LPVOID lpParam)
 {
 	CRamseyXDlg *pDlg = static_cast<CRamseyXDlg *>(AfxGetApp()->GetMainWnd());
 
-	MyCurlWrapper conn;
-	// check for update
-	if (!conn.StandardOpt("www.ramseyx.org/update_benchmark.php") || !conn.SetPost())
-		return 0;
-
-	CCPUInfo cpuinfo;
-	char szComputerName[MAX_PATH + 2];
+	TCHAR lszComputerName[MAX_PATH + 2];
 	DWORD dwSize = MAX_PATH;
-	::GetComputerNameA(szComputerName, &dwSize);
-	CStringA strBenchmark;
-	strBenchmark.Format("%.1f", pDlg->m_fTotalVAX_MIPS / (CTime::GetCurrentTime().GetTime() - pDlg->m_tLastBenchmark));
-	
-	pDlg->m_fTotalVAX_MIPS = 0.0f;
-	pDlg->m_tLastBenchmark = CTime::GetCurrentTime().GetTime();
+	::GetComputerName(lszComputerName, &dwSize);
 
-	conn.AddPostField("username", CStringA(pDlg->m_strUsername));
-	conn.AddPostField("password", CStringA(pDlg->m_strPassword));
-	conn.AddPostField("computer_name", szComputerName);
-	conn.AddPostField("cpu_brand", CStringA(cpuinfo.GetBrand()));
-	conn.AddPostField("benchmark", strBenchmark);
-
-	conn.Execute();
+	pDlg->m_controller.updateBenchmark(
+		LPCTSTR(pDlg->m_strUsername),
+		LPCTSTR(pDlg->m_strPassword),
+		lszComputerName,
+		RamseyXUtils::getCPUBrandString(),
+		pDlg->m_fVAX_MIPS);
 
 	return 0;
 }

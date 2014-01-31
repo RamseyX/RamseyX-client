@@ -1,5 +1,5 @@
-﻿#include "stdafx.h"
-#include "Graph.h"
+﻿#include "Graph.h"
+#include "BitsetIterator.h"
 
 Graph::Graph() : complexity(0)
 {
@@ -7,44 +7,44 @@ Graph::Graph() : complexity(0)
 
 void Graph::connect(int u, int v)
 {
-    setOfVertices.insert(u);
-    setOfVertices.insert(v);
-    setOfNeighbourVertices[u].insert(v);
-    setOfNeighbourVertices[v].insert(u);
+    setOfVertices.set(u);
+    setOfVertices.set(v);
+    setOfNeighbourVertices[u].set(v);
+    setOfNeighbourVertices[v].set(u);
 }
 
 bool Graph::isConnected(int u, int v) const
 {
-	return setOfNeighbourVertices[u].contain(v);
+    return setOfNeighbourVertices[u][v];
 }
 
-int Graph::size() const
+std::size_t Graph::order() const
 {
-	return setOfVertices.size();
+	return setOfVertices.count();
 }
 
 void Graph::clear()
 {   
-	for (int i = 0; i < p; i++)
-		setOfNeighbourVertices[i].clear();
-	setOfVertices.clear();
+    for (unsigned int i = 0; i < RX_P; i++)
+		setOfNeighbourVertices[i].reset();
+	setOfVertices.reset();
 }
 
 bool Graph::size2CliqueExists()
 {
-	for (int i = 0; i < p; i++)
-		for (int j = i + 1; j < p; j++)
-			if (setOfNeighbourVertices[i].contain(j))
-				return true;
+    for (unsigned int i = 0; i < RX_P; i++)
+		if (setOfNeighbourVertices[i].any())
+			return true;
 
 	return false;
 }
 
 bool Graph::size3CliqueExists()
 {
-	for (int i = 0; i < p; i++)
-		for (int j = i + 1; j < p; j++)
-			if (setOfNeighbourVertices[i].contain(j) && !(setOfNeighbourVertices[i] & setOfNeighbourVertices[j]).isEmpty())
+    for (unsigned int i = 0; i < RX_P; i++)
+        for (unsigned int j = i + 1; j < RX_P; j++)
+            if (setOfNeighbourVertices[i][j] &&
+				(setOfNeighbourVertices[i] & setOfNeighbourVertices[j]).any())
 				return true;
 
 	return false;
@@ -52,91 +52,50 @@ bool Graph::size3CliqueExists()
 
 bool Graph::size4CliqueExists()
 {
-	Set R, P(setOfVertices), X;
-	return sNceHelper(R, P, X, 4);
+    std::bitset<RX_P> R, P(setOfVertices), X;
+	return sNceHelper(R, P, X, 4U);
 }
 
 bool Graph::size5CliqueExists()
 {
-	Set R, P(setOfVertices), X;
-	return sNceHelper(R, P, X, 5);
+    std::bitset<RX_P> R, P(setOfVertices), X;
+	return sNceHelper(R, P, X, 5U);
 }
 
 bool Graph::size6CliqueExists()
 {
-	Set R, P(setOfVertices), X;
-	return sNceHelper(R, P, X, 6);
+    std::bitset<RX_P> R, P(setOfVertices), X;
+	return sNceHelper(R, P, X, 6U);
 }
 
-bool Graph::sNceHelper(Set &R, Set &P, Set &X, int N)
+bool Graph::sNceHelper(std::bitset<RX_P> &R, std::bitset<RX_P> &P, std::bitset<RX_P> &X, unsigned int N)
 {
-	if (R.size() >= N)
+	if (R.count() >= N)
 		return true;
-	else if (P.isEmpty() && X.isEmpty())
+	else if (P.none() && X.none())
         return false;
     
-    //choose a pivot vertex u in P ⋃ X
-    P.resetIterator();
-    int u = P.next(), v;
+    // Choose a pivot vertex u in P ⋃ X
+    BitsetIterator<RX_P> iterator(P);
+    int u = iterator.next(), v;
     
-    Set P_(P);
+    std::bitset<RX_P> P_(P);
     if (u >= 0)
-        P_ -= setOfNeighbourVertices[u];
+		P_ &= ~setOfNeighbourVertices[u];
     
-    Set _P, _X;
-    for (P_.resetIterator(); (v = P_.next()) >= 0; ) {
-        R.insert(v);
+    std::bitset<RX_P> _P, _X;
+    for (iterator.rebind(P_); (v = iterator.next()) >= 0; )
+	{
+        R.set(v);
         _P = P & setOfNeighbourVertices[v];
         _X = X & setOfNeighbourVertices[v];
         
 		if (sNceHelper(R, _P, _X, N))
 			return true;
         
-        R.remove(v);
-        P.remove(v);
-        X.insert(v);
+        R.reset(v);
+        P.reset(v);
+        X.set(v);
     }
 	return false;
 }
-
-/*int Graph::sizeOfMaxClique()
-{
-    maxCliqueSize = 1;
-	complexity = 0;
-    Set R, P(setOfVertices), X;
-    
-    BronKerbosch2(R, P, X);
-    
-    return maxCliqueSize;
-}*/
-
-/*void Graph::BronKerbosch2(Set &R, Set &P, Set &X)
-{
-	complexity++;
-
-	if (P.isEmpty() && X.isEmpty() && maxCliqueSize < R.size()) {
-        maxCliqueSize = R.size();
-		return;
-	}
-    
-    //choose a pivot vertex u in P ⋃ X
-    P.resetIterator();
-    int u = P.next(), v;
-    
-    Set P_(P);
-    if (u >= 0)
-        P_ -= setOfNeighbourVertices[u];
-    
-    Set _P, _X;
-    for (P_.resetIterator(); (v = P_.next()) >= 0; ) {
-        R.insert(v);
-        _P = P & setOfNeighbourVertices[v];
-        _X = X & setOfNeighbourVertices[v];
-        
-        BronKerbosch2(R, _P, _X);
-        
-        R.remove(v);
-        P.remove(v);
-        X.insert(v);
-    }
-}*/
