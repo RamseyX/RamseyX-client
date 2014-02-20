@@ -1,6 +1,5 @@
 #include "accountdialog.h"
 #include "ui_accountdialog.h"
-#include "validateaccountthread.h"
 #include "signupdialog.h"
 #include <QMessageBox>
 #include <QKeyEvent>
@@ -12,113 +11,115 @@ AccountDialog::AccountDialog(
         bool isAccountLocked,
         const QString &username,
         const QString &password) :
-    QDialog(parent),
+    QDialog(parent, Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint),
     ui(new Ui::AccountDialog),
-    mainWnd(static_cast<MainWindow *>(parent))
+    isLocked(isAccountLocked),
+    validateAccountThread(new QThread(this)),
+    validateAccountWorker(new ValidateAccountWorker)
 {
     ui->setupUi(this);
 
-    connect(ui->chkLock, SIGNAL(clicked(bool)), this, SLOT(onChkLockClicked(bool)));
-    connect(ui->btnSignUp, SIGNAL(clicked()), this, SLOT(onBtnSignUpClicked()));
+    setFixedSize(size());
 
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    connect(ui->logInButton, SIGNAL(clicked()), this, SLOT(onLogInButtonClicked()));
+    connect(ui->signUpButton, SIGNAL(clicked()), this, SLOT(onSignUpButtonClicked()));
 
-    if (isAccountLocked)
+    validateAccountWorker->moveToThread(validateAccountThread);
+    connect(this, SIGNAL(validateAccount(QString, QString)), validateAccountWorker, SLOT(doWork(QString, QString)));
+    connect(validateAccountWorker, SIGNAL(send(int)), this, SLOT(onValidateAccountThreadFinished(int)));
+    connect(validateAccountThread, SIGNAL(finished()), validateAccountWorker, SLOT(deleteLater()));
+    validateAccountThread->start();
+
+    if (isLocked)
     {
-        ui->lineUsername->setText(username);
-        ui->linePassword->setText(password);
-        ui->lineUsername->setDisabled(true);
-        ui->linePassword->setDisabled(true);
-        ui->chkLock->setChecked(true);
-        ui->btnUpload->setEnabled(true);
+        ui->usernameEdit->setText(username);
+        ui->passwordEdit->setText(password);
+        ui->usernameEdit->setDisabled(true);
+        ui->passwordEdit->setDisabled(true);
+        ui->logInButton->setText(tr("&Log Out"));
     }
 }
 
 AccountDialog::~AccountDialog()
 {
+    validateAccountThread->quit();
+    validateAccountThread->wait();
+
     delete ui;
 }
 
-void AccountDialog::keyPressEvent(QKeyEvent *e)
+void AccountDialog::keyPressEvent(QKeyEvent *event)
 {
-    if (e->key() != Qt::Key_Escape)
-        QDialog::keyPressEvent(e);
+    if (event->key() != Qt::Key_Escape)
+        QDialog::keyPressEvent(event);
 }
 
-void AccountDialog::onChkLockClicked(bool checked)
+void AccountDialog::onLogInButtonClicked()
 {
-    if (checked)
-    {
-        QString username(ui->lineUsername->text());
-        QString password(ui->linePassword->text());
-
-        // Validate account format
-        if (!QRegExp("[a-zA-Z0-9_]{1,16}").exactMatch(username))
-        {
-            QToolTip::showText(
-                        ui->lineUsername->mapToGlobal(QPoint()),
-                        tr("Username should only contain letters, numbers and underscores,") +
-                            "\n" + tr("and should have a length of 1-16 characters."),
-                        this);
-            ui->chkLock->setChecked(false);
-            return;
-        }
-        if (!QRegExp("[a-zA-Z0-9_]{4,16}").exactMatch(password))
-        {
-            QToolTip::showText(
-                        ui->linePassword->mapToGlobal(QPoint()),
-                        tr("Password should only contain letters, numbers and underscores,") +
-                            "\n" + tr("and should have a length of 4-16 characters."),
-                        this);
-            ui->chkLock->setChecked(false);
-            return;
-        }
-
-        // Change UI status
-        ui->lineUsername->setDisabled(true);
-        ui->linePassword->setDisabled(true);
-        ui->btnUpload->setText(tr("Logging In..."));
-
-        // Create thread
-        ValidateAccountThread *thread = new ValidateAccountThread(this, &mainWnd->controller, username, password);
-        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-        connect(thread, SIGNAL(send(int, unsigned long long)), this, SLOT(onValidateAccountThreadFinished(int, unsigned long long)));
-        thread->start();
-    }
-    else
+    if (isLocked)
     {
         // Warn user
-        if (!mainWnd->controller.allListsEmpty() && QMessageBox::Cancel ==
+        if (!theController().allListsEmpty() && QMessageBox::Cancel ==
                 QMessageBox::warning(
                     this,
                     tr("RamseyX Client"),
                     tr("WARNING: You have task(s) to be completed or uploaded.") + "\t\t\n" +
                         tr("Switching to another account will invalidate current task(s).") + "\t\t\n",
                     QMessageBox::Ok, QMessageBox::Cancel))
+            return;
+
+        // Change UI status
+        ui->usernameEdit->setEnabled(true);
+        ui->passwordEdit->setEnabled(true);
+        ui->logInButton->setText(tr("&Log In"));
+
+        // Notify MainWindow
+        emit lock(isLocked = false, QString(), QString());
+    }
+    else
+    {
+        QString username(ui->usernameEdit->text());
+        QString password(ui->passwordEdit->text());
+
+        // Validate account format
+        if (!QRegExp("[a-zA-Z0-9_]{1,16}").exactMatch(username))
         {
-            ui->chkLock->setChecked(true);
+            QToolTip::showText(
+                        ui->usernameEdit->mapToGlobal(QPoint()),
+                        tr("Username should only contain letters, numbers and underscores,") +
+                            "\n" + tr("and should have a length of 1-16 characters."),
+                        this);
+            return;
+        }
+        if (!QRegExp("[a-zA-Z0-9_]{4,16}").exactMatch(password))
+        {
+            QToolTip::showText(
+                        ui->passwordEdit->mapToGlobal(QPoint()),
+                        tr("Password should only contain letters, numbers and underscores,") +
+                            "\n" + tr("and should have a length of 4-16 characters."),
+                        this);
             return;
         }
 
         // Change UI status
-        ui->lineUsername->setEnabled(true);
-        ui->linePassword->setEnabled(true);
-        ui->btnUpload->setDisabled(true);
+        ui->usernameEdit->setDisabled(true);
+        ui->passwordEdit->setDisabled(true);
+        ui->logInButton->setDisabled(true);
+        ui->logInButton->setText(tr("Logging In..."));
 
-        // Notify MainWindow
-        emit lock(false);
+        // Create thread
+        emit validateAccount(username, password);
     }
 }
 
-void AccountDialog::onBtnSignUpClicked()
+void AccountDialog::onSignUpButtonClicked()
 {
-    SignUpDialog dlg(this, &mainWnd->controller);
+    SignUpDialog dlg(this);
     dlg.exec();
 }
 
-void AccountDialog::onValidateAccountThreadFinished(int errorCode, unsigned long long userID)
+void AccountDialog::onValidateAccountThreadFinished(int errorCode)
 {
-    // Validate account
     switch (errorCode)
     {
         case RX_ERR_SUCCESS:
@@ -135,10 +136,10 @@ void AccountDialog::onValidateAccountThreadFinished(int errorCode, unsigned long
                         tr("Failed to connect to server.") + "\t\t\n" +
                             tr("Please try again later.") + "\t\t\n",
                         QMessageBox::Ok);
-            ui->chkLock->setChecked(false);
-            ui->btnUpload->setText(tr("&Upload Now"));
-            ui->lineUsername->setEnabled(true);
-            ui->linePassword->setEnabled(true);
+            ui->logInButton->setText(tr("&Log In"));
+            ui->logInButton->setEnabled(true);
+            ui->usernameEdit->setEnabled(true);
+            ui->passwordEdit->setEnabled(true);
             return;
         case RX_ERR_WRONG_USR_PWD:
             QMessageBox::critical(
@@ -146,11 +147,11 @@ void AccountDialog::onValidateAccountThreadFinished(int errorCode, unsigned long
                         tr("RamseyX Client"),
                         tr("Username or password incorrect.") + "\t\t\n",
                         QMessageBox::Ok);
-            ui->chkLock->setChecked(false);
-            ui->btnUpload->setText(tr("&Upload Now"));
-            ui->lineUsername->setEnabled(true);
-            ui->linePassword->setEnabled(true);
-            ui->lineUsername->setFocus();
+            ui->logInButton->setText(tr("&Log In"));
+            ui->logInButton->setEnabled(true);
+            ui->usernameEdit->setEnabled(true);
+            ui->passwordEdit->setEnabled(true);
+            ui->usernameEdit->setFocus();
             return;
         default:
             QMessageBox::critical(
@@ -159,21 +160,18 @@ void AccountDialog::onValidateAccountThreadFinished(int errorCode, unsigned long
                         tr("Validation failed.") + "\t\t\n" +
                             tr("Please try again later.") + "\t\t\n",
                         QMessageBox::Ok);
-            ui->chkLock->setChecked(false);
-            ui->btnUpload->setText(tr("&Upload Now"));
-            ui->lineUsername->setEnabled(true);
-            ui->linePassword->setEnabled(true);
+            ui->logInButton->setText(tr("&Log In"));
+            ui->logInButton->setEnabled(true);
+            ui->usernameEdit->setEnabled(true);
+            ui->passwordEdit->setEnabled(true);
             return;
     }
 
-    // Store information in MainWindow members
-    mainWnd->setUserInfo(ui->lineUsername->text(), ui->linePassword->text(), userID);
+    // Notify MainWindow
+    emit lock(isLocked = true, ui->usernameEdit->text(), ui->passwordEdit->text());
 
     // Change UI status
-    ui->btnUpload->setText(tr("&Upload Now"));
-    ui->btnUpload->setEnabled(true);
-
-    // Notify MainWindow
-    emit lock(true);
+    ui->logInButton->setText(tr("&Log Out"));
+    ui->logInButton->setEnabled(true);
 }
 

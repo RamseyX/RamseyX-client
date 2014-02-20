@@ -1,39 +1,35 @@
 ﻿#include "RamseyXcURLWrapper.h"
 #include "RamseyXUtils.h"
 
-bool RamseyXcURLWrapper::firstInstance = true;
-
-RamseyXcURLWrapper::RamseyXcURLWrapper()
+RamseyXcURLWrapper::RamseyXcURLWrapper() :
+    conn(curl_easy_init())
 {
-	if (firstInstance)
-	{
-		firstInstance = false;
-		::curl_global_init(CURL_GLOBAL_DEFAULT);
-	}
-	m_conn = ::curl_easy_init();
 }
 
 RamseyXcURLWrapper::~RamseyXcURLWrapper()
 {
-	if (m_conn)
-		::curl_easy_cleanup(m_conn);
+    if (conn)
+        curl_easy_cleanup(conn);
+}
+
+void RamseyXcURLWrapper::init()
+{
+    curl_global_init(CURL_GLOBAL_DEFAULT);
 }
 
 bool RamseyXcURLWrapper::standardOpt(const char *szURL)
 {
 	if (!szURL)
 		return false;
-	
-	if (::curl_easy_setopt(m_conn, CURLOPT_URL, szURL) != CURLE_OK ||
-		::curl_easy_setopt(m_conn, CURLOPT_FOLLOWLOCATION, 1) != CURLE_OK ||
-		::curl_easy_setopt(m_conn, CURLOPT_WRITEDATA, m_szBuffer) != CURLE_OK ||
-		::curl_easy_setopt(m_conn, CURLOPT_WRITEFUNCTION, cURLWriter) != CURLE_OK)
-		return false;
+    posting = false;
 
-	return true;
+    return curl_easy_setopt(conn, CURLOPT_URL, szURL) == CURLE_OK &&
+            curl_easy_setopt(conn, CURLOPT_FOLLOWLOCATION, 1) == CURLE_OK &&
+            curl_easy_setopt(conn, CURLOPT_WRITEDATA, rawBuffer) == CURLE_OK &&
+            curl_easy_setopt(conn, CURLOPT_WRITEFUNCTION, cURLWriter) == CURLE_OK;
 }
 
-int RamseyXcURLWrapper::cURLWriter(char *pData, size_t size, size_t nmemb, char *pBuffer)
+int RamseyXcURLWrapper::cURLWriter(char *pData, std::size_t size, std::size_t nmemb, char *pBuffer)
 {
 	if (!pBuffer)
 		return 0;
@@ -44,21 +40,24 @@ int RamseyXcURLWrapper::cURLWriter(char *pData, size_t size, size_t nmemb, char 
 
 int RamseyXcURLWrapper::getErrorCode() const
 {
-	return std::strtol(m_szBuffer, nullptr, 10);
+    return std::strtol(rawBuffer, nullptr, 10);
 }
 
 bool RamseyXcURLWrapper::execute()
 {
-	std::memset(m_szBuffer, 0, sizeof (m_szBuffer));
-	if (::curl_easy_perform(m_conn) != CURLE_OK)
-		return false;
-    std::strcpy(m_szBuffer, m_szBuffer);
+    if (posting &&
+            !(curl_easy_setopt(conn, CURLOPT_POST, 1) == CURLE_OK &&
+              curl_easy_setopt(conn, CURLOPT_POSTFIELDS, postFields.c_str()) == CURLE_OK))
+            return false;
+    std::memset(rawBuffer, 0, sizeof (rawBuffer));
+    if (curl_easy_perform(conn) != CURLE_OK)
+        return false;
 	return true;
 }
 
 std::wstring RamseyXcURLWrapper::getString() const
 {
-    std::string s(RamseyXUtils::UTF8ToUnicode(m_szBuffer).get());
+    std::string s(RamseyXUtils::UTF8ToUnicode(rawBuffer).get());
 	std::wstring ws(RamseyXUtils::to_wstring(s));
 
 	return ws.substr(ws.find(L' ') + 1);
@@ -66,39 +65,40 @@ std::wstring RamseyXcURLWrapper::getString() const
 
 const char *RamseyXcURLWrapper::getBuffer() const
 {
-	return m_szBuffer;
+    return rawBuffer;
 }
 
 bool RamseyXcURLWrapper::setPost()
 {
-	std::memset(m_szPostFields, 0, sizeof (m_szPostFields));
-	return ::curl_easy_setopt(m_conn, CURLOPT_POST, 1) == CURLE_OK && ::curl_easy_setopt(m_conn, CURLOPT_POSTFIELDS, m_szPostFields) == CURLE_OK;
+    posting = true;
+    postFields.clear();
+    return true;
+    //return curl_easy_setopt(conn, CURLOPT_POST, 1) == CURLE_OK && curl_easy_setopt(conn, CURLOPT_POSTFIELDS, postFields) == CURLE_OK;
 }
 
 void RamseyXcURLWrapper::addPostField(const char *szKey, const char *szValue)
 {
-	if (std::strlen(m_szPostFields) > 0)
-		std::strcat(m_szPostFields, "&");
-	std::strcat(m_szPostFields, szKey);
-	std::strcat(m_szPostFields, "=");
-	std::strcat(m_szPostFields, szValue);
+    if (!postFields.empty())
+        postFields += '&';
+    postFields += szKey;
+    postFields += '=';
+    postFields += szValue;
 }
 
 void RamseyXcURLWrapper::addPostField(const std::wstring &key, const std::wstring &val)
 {
-	if (std::strlen(m_szPostFields) > 0)
-		std::strcat(m_szPostFields, "&");
-
-    std::strcat(m_szPostFields, RamseyXUtils::to_string(key).c_str());
-	std::strcat(m_szPostFields, "=");
-	std::strcat(m_szPostFields, RamseyXUtils::to_string(val).c_str());
+    if (!postFields.empty())
+        postFields += '&';
+    postFields += RamseyXUtils::to_string(key);
+    postFields += '=';
+    postFields += RamseyXUtils::to_string(val);
 }
 
-#ifdef QT_VERSION
+#ifdef RX_QT
 QString RamseyXcURLWrapper::getQString() const
 {
-    QString result(m_szBuffer);
+    QString result(rawBuffer);
 
-    return result.mid(result.indexOf(' ') + 1);
+    return result.section(' ', 1);
 }
 #endif

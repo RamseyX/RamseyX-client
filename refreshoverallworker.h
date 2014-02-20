@@ -1,24 +1,15 @@
-#ifndef REFRESHTHREAD_H
-#define REFRESHTHREAD_H
+#ifndef REFRESHOVERALLWORKER_H
+#define REFRESHOVERALLWORKER_H
 
+#include <QObject>
 #include "RamseyXController.h"
-#include <QThread>
 
-class RefreshThread : public QThread
+class RefreshOverallWorker : public QObject
 {
     Q_OBJECT
 
-private:
-    RamseyXController *controller;
-
-public:
-    explicit RefreshThread(QObject *parent, RamseyXController *c) :
-        QThread(parent),
-        controller(c)
-    {
-    }
-
-    void run()
+public slots:
+    void doWork()
     {
         unsigned long long numOfTasksCompleted = 0;
         unsigned long long numOfUsers = 0;
@@ -28,10 +19,13 @@ public:
         double currentPower = 0.0;
         double maxPower = 0.0;
 
-        if (controller->getProjectInfo(numOfTasksCompleted,
+        if (RamseyXController::getProjectInfo(numOfTasksCompleted,
                 numOfUsers, numOfMachines, numOfTasks,
                 time, currentPower, maxPower) != RX_ERR_SUCCESS)
+        {
+            emit send("", "", "", "", "", "");
             return;
+        }
 
         double progress = numOfTasksCompleted * 100.0 / numOfTasks;
         if (100.0 - progress <= 0.01 && numOfTasksCompleted < numOfTasks)
@@ -48,12 +42,12 @@ public:
 
 signals:
     void send(
-            const QString &progress,
-            const QString &users,
-            const QString &computers,
-            const QString &tasks,
-            const QString &days,
-            const QString &power);
+            QString progress,
+            QString users,
+            QString computers,
+            QString tasks,
+            QString days,
+            QString power);
 };
 
-#endif // REFRESHTHREAD_H
+#endif // REFRESHOVERALLWORKER_H

@@ -230,7 +230,7 @@ float Benchmark ()
     Number_Of_Runs = n;
   }
   printf ("\n");*/
-  Number_Of_Runs = 64000000;
+  Number_Of_Runs = 512000000;
 
   //printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
 

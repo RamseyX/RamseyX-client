@@ -5,8 +5,11 @@
 //#include <locale>
 #include <memory>
 #ifdef _WIN32
-#include <Windows.h>
+#include <wtypes.h>
 #include <intrin.h>
+#include <stringapiset.h>
+#else
+    #error Unsupported OS
 #endif
 
 class RamseyXUtils
@@ -63,6 +66,8 @@ public:
 		int i = 0;
 		for (; CPUBrandString[i] == ' '; ++i);
 		return RamseyXUtils::to_wstring(CPUBrandString + i);
+#else
+    #error Unsupported OS
 #endif
 	}
 
@@ -80,6 +85,8 @@ public:
 		::WideCharToMultiByte(CP_ACP, 0, wideStr.get(), -1, unicodeStr.get(), charLen, nullptr, nullptr);
 
 		return unicodeStr;
+#else
+    #error Unsupported OS
 #endif
 	}
 
@@ -97,6 +104,8 @@ public:
 		::WideCharToMultiByte(CP_UTF8, 0, wideStr.get(), -1, utf8Str.get(), charLen, nullptr, nullptr);
 
 		return utf8Str;
+#else
+    #error Unsupported OS
 #endif
 	}
 };

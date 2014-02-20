@@ -1,1 +1,36 @@
-IDI_ICON1 ICON DISCARDABLE "RamseyX.ico"
+#include <windows.h>
+
+IDI_ICON1 ICON DISCARDABLE "res/RamseyX.ico"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 5,0,0,0
+ PRODUCTVERSION 5,0,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", ""
+            VALUE "FileDescription", "RamseyX Client"
+            VALUE "FileVersion", "5.0.0.0"
+            VALUE "InternalName", "RamseyX.exe"
+            VALUE "LegalCopyright", ""
+            VALUE "OriginalFilename", "RamseyX.exe"
+            VALUE "ProductName", "RamseyX Client"
+            VALUE "ProductVersion", "5.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
