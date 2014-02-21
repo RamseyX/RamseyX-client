@@ -49,7 +49,7 @@ LIBS += -L$$PWD/../curl-7.35.0/lib/ -lcurldll
 release: LIBS += -L$$PWD/../boost_1_55_0/stage/lib/ -lboost_atomic-mgw48-mt-1_55
 debug: LIBS += -L$$PWD/../boost_1_55_0/stage/lib/ -lboost_atomic-mgw48-mt-d-1_55
 
-VERSION = 5.0.1
+VERSION = 5.0.2
 QMAKE_TARGET_PRODUCT = RamseyX Client
 QMAKE_TARGET_DESCRIPTION = RamseyX Client
 DEFINES += RX_QT APP_VERSION=\\\"$$VERSION\\\"
@@ -61,6 +61,8 @@ gcc {
     QMAKE_CXXFLAGS_RELEASE -= -O -O1 -O2
     QMAKE_CXXFLAGS_RELEASE += -O3 -flto
     QMAKE_LFLAGS_RELEASE += -flto
+    # QMAKE_CXXFLAGS_DEBUG += -static -ggdb # For memory check
+    # QMAKE_LFLAGS_DEBUG += -static -ggdb # For memory check
 }
 
 msvc {
@@ -73,4 +75,7 @@ msvc {
 win32 {
     RC_FILE += RamseyX.rc
 }
+
+OTHER_FILES += \
+    RamseyX.rc
 

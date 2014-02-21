@@ -23,7 +23,7 @@ public:
 		const wchar_t *_Source = ws.c_str();
 		std::size_t _DSize = sizeof (wchar_t) * (ws.size() + 1);
 
-		std::unique_ptr<char> _Dest(new char[_DSize]{});
+        std::unique_ptr<char[]> _Dest(new char[_DSize]{});
 		std::wcstombs(_Dest.get(), _Source, _DSize);
 
         //std::locale::global(oldLocale);
@@ -33,14 +33,14 @@ public:
 	}
 
     static std::wstring to_wstring(const std::string &s)
-	{
+    {
         //std::locale oldLocale(std::locale::global(std::locale("zh_CN.utf8")));
         //std::setlocale(LC_ALL, "CHS");
 
 		const char *_Source = s.c_str();
 		std::size_t _DSize = sizeof (char) * (s.size() + 1);
 
-		std::unique_ptr<wchar_t> _Dest(new wchar_t[_DSize]{});
+        std::unique_ptr<wchar_t[]> _Dest(new wchar_t[_DSize]{});
 		std::mbstowcs(_Dest.get(), _Source, _DSize);
 
         //std::locale::global(oldLocale);
@@ -71,16 +71,16 @@ public:
 #endif
 	}
 
-    static std::unique_ptr<char> UTF8ToUnicode(const char *mbcsStr)
+    static std::unique_ptr<char[]> UTF8ToUnicode(const char *mbcsStr)
 	{
 #ifdef _WIN32
 		int charLen = ::MultiByteToWideChar(CP_UTF8, 0, mbcsStr, -1, nullptr, 0);
-		std::unique_ptr<wchar_t> wideStr(new wchar_t[charLen + 1]);
+        std::unique_ptr<wchar_t[]> wideStr(new wchar_t[charLen + 1]);
 
 		::MultiByteToWideChar(CP_UTF8, 0, mbcsStr, -1, wideStr.get(), charLen);
 
 		charLen = ::WideCharToMultiByte(CP_ACP, 0, wideStr.get(), -1, nullptr, 0, nullptr, nullptr);
-		std::unique_ptr<char> unicodeStr(new char[charLen + 1]);
+        std::unique_ptr<char[]> unicodeStr(new char[charLen + 1]);
 
 		::WideCharToMultiByte(CP_ACP, 0, wideStr.get(), -1, unicodeStr.get(), charLen, nullptr, nullptr);
 
@@ -90,16 +90,16 @@ public:
 #endif
 	}
 
-    static std::unique_ptr<char> UnicodeToUTF8(const char *mbcsStr)
+    static std::unique_ptr<char[]> UnicodeToUTF8(const char *mbcsStr)
 	{
 #ifdef _WIN32
 		int charLen = ::MultiByteToWideChar(CP_UTF8, 0, mbcsStr, -1, nullptr, 0);
-		std::unique_ptr<wchar_t> wideStr(new wchar_t[charLen + 1]);
+        std::unique_ptr<wchar_t[]> wideStr(new wchar_t[charLen + 1]);
 
 		::MultiByteToWideChar(CP_ACP, 0, mbcsStr, -1, wideStr.get(), charLen);
 
 		charLen = WideCharToMultiByte(CP_UTF8, 0, wideStr.get(), -1, nullptr, 0, nullptr, nullptr);
-		std::unique_ptr<char> utf8Str(new char[charLen + 1]);
+        std::unique_ptr<char[]> utf8Str(new char[charLen + 1]);
 
 		::WideCharToMultiByte(CP_UTF8, 0, wideStr.get(), -1, utf8Str.get(), charLen, nullptr, nullptr);
 
