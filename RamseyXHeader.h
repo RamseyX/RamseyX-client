@@ -10,7 +10,7 @@
 // Version
 const int RX_VER_MAJOR = 5;
 const int RX_VER_MINOR = 0;
-const int RX_VER_PATCHLEVEL = 0;
+const int RX_VER_PATCHLEVEL = 1;
 
 // Data
 const unsigned int RX_N = 3;

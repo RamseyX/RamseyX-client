@@ -49,7 +49,7 @@ LIBS += -L$$PWD/../curl-7.35.0/lib/ -lcurldll
 release: LIBS += -L$$PWD/../boost_1_55_0/stage/lib/ -lboost_atomic-mgw48-mt-1_55
 debug: LIBS += -L$$PWD/../boost_1_55_0/stage/lib/ -lboost_atomic-mgw48-mt-d-1_55
 
-VERSION = 5.0.0
+VERSION = 5.0.1
 QMAKE_TARGET_PRODUCT = RamseyX Client
 QMAKE_TARGET_DESCRIPTION = RamseyX Client
 DEFINES += RX_QT APP_VERSION=\\\"$$VERSION\\\"

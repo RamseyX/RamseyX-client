@@ -346,7 +346,8 @@ void MainWindow::initialize()
         std::thread(&RamseyXController::updateBenchmark,
                     username.toStdWString(), password.toStdWString(),
                     QHostInfo::localHostName().toStdWString(),
-                    RamseyXUtils::getCPUBrandString(), benchmarkInDMIPS).detach();
+                    RamseyXUtils::getCPUBrandString(),
+                    benchmarkInDMIPS * QThread::idealThreadCount()).detach();
 
     // Autorun
     if (isAuto)
@@ -460,7 +461,8 @@ void MainWindow::timerEvent(QTimerEvent *event)
             std::thread(&RamseyXController::updateBenchmark,
                         username.toStdWString(), password.toStdWString(),
                         QHostInfo::localHostName().toStdWString(),
-                        RamseyXUtils::getCPUBrandString(), benchmarkInDMIPS).detach();
+                        RamseyXUtils::getCPUBrandString(),
+                        benchmarkInDMIPS * QThread::idealThreadCount()).detach();
 
     QMainWindow::timerEvent(event);
 }
@@ -504,11 +506,11 @@ void MainWindow::onMailingListAction()
                 this,
                 tr("RamseyX Mailing List"),
                 tr("<p>Report a bug:<br />"
-                   "&nbsp;&nbsp;&nbsp;<a href=\"mailto:bug-reporting@ramseyx.org\">"
-                   "bug-reporting@ramseyx.org</a></p>"
+                   "&nbsp;&nbsp;&nbsp;<a href=\"mailto:report-bugs@ramseyx.org\">"
+                   "report-bugs@ramseyx.org</a></p>"
                    "<p>Give advice:<br />"
-                   "&nbsp;&nbsp;&nbsp;<a href=\"mailto:advising@ramseyx.org\">"
-                   "advising@ramseyx.org</a></p>"
+                   "&nbsp;&nbsp;&nbsp;<a href=\"mailto:advise@ramseyx.org\">"
+                   "advise@ramseyx.org</a></p>"
                    "<p>Join our development team:<br />"
                    "&nbsp;&nbsp;&nbsp;<a href=\"mailto:join@ramseyx.org\">"
                    "join@ramseyx.org</a></p>"
@@ -524,6 +526,7 @@ void MainWindow::onAboutAction()
                 this,
                 tr("About RamseyX Client"),
                 tr("<h1>RamseyX Client %1.%2.%3</h1><br />").arg(RX_VER_MAJOR).arg(RX_VER_MINOR).arg(RX_VER_PATCHLEVEL) +
+                    tr("<a href=\"http://www.ramseyx.org/\">http://www.ramseyx.org/</a><br /><br />") +
                     tr("By Zizheng Tai<br /><br />") +
                     tr("Built on " __DATE__ " at " __TIME__ " using ") + RX_BUILD + "<br /><br />" +
                     tr("THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, "
@@ -855,14 +858,13 @@ void MainWindow::updateTasksStatus(bool force)
     if (!force && !isVisible())
         return;
 
-    std::list<RXPRINT> running, todo, completed;
-    QString str;
+    static std::list<RXPRINT> running, todo, completed;
 
     theController().getStatus(running, todo, completed);
 
-    str = tr("Last save: ") +
+    QString str(tr("Last save: ") +
             QDateTime::fromTime_t(theController().getLastLog()).toString("yyyy-MM-dd hh:mm:ss") +
-            "<br />";
+            "<br />");
     str += tr("Single-threaded benchmark: ") + QString::number(benchmarkInDMIPS, 'f', 1) + " DMIPS<br />";
     str += tr("Cumulative computation time: ") + QString::number(theController().getTime()) +
             tr(" secs<br />");
