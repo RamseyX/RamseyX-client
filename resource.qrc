@@ -1,0 +1,24 @@
+<RCC>
+    <qresource prefix="/bmp">
+        <file alias="splash">res/splash.bmp</file>
+        <file alias="slogan">res/slogan.bmp</file>
+    </qresource>
+    <qresource prefix="/png">
+        <file alias="medal_bronze">res/medal_bronze_3.png</file>
+        <file alias="medal_gold">res/medal_gold_1.png</file>
+        <file alias="medal_silver">res/medal_silver_2.png</file>
+        <file alias="RX_1">res/ramseyx_16_16_4.png</file>
+        <file alias="RX_2">res/ramseyx_16_16_8.png</file>
+        <file alias="RX_3">res/ramseyx_16_16_32.png</file>
+        <file alias="RX_4">res/ramseyx_24_24_4.png</file>
+        <file alias="RX_5">res/ramseyx_24_24_8.png</file>
+        <file alias="RX_6">res/ramseyx_24_24_32.png</file>
+        <file alias="RX_7">res/ramseyx_32_32_4.png</file>
+        <file alias="RX_8">res/ramseyx_32_32_8.png</file>
+        <file alias="RX_9">res/ramseyx_32_32_32.png</file>
+        <file alias="RX_10">res/ramseyx_48_48_4.png</file>
+        <file alias="RX_11">res/ramseyx_48_48_8.png</file>
+        <file alias="RX_12">res/ramseyx_48_48_32.png</file>
+        <file alias="RX_13">res/ramseyx_256_256_32.png</file>
+    </qresource>
+</RCC>
