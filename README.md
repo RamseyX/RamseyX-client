@@ -33,7 +33,9 @@ If not, see <http://www.gnu.org/licenses/>.
 
 CONTACT
 ----
-If you have problems, questions, ideas or suggestions, please contact us by posting an email to a suitable email address listed in the "About RamseyX Client" part in the program.
+If you have problems, questions, ideas or suggestions,
+please contact us by posting an email to a suitable email address listed
+in the "About RamseyX Client" part in the program.
 
 WEBSITE
 ----
