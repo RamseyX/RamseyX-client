@@ -1,5 +1,8 @@
 RamseyX Client
 ====
+RamseyX Client is the client program of distributed computing project RamseyX. 
+It is designed to help DC volunteers contribute their computing power to the project more easily.
+
 INSTALL
 ----
 Perform this to do a standard install:
@@ -8,11 +11,6 @@ git clone https://github.com/ZizhengTai/RamseyX.git && \ # Grab the Source
 cd RanseyX && git checkout Qt && \ # Switch to Branch Qt
 qmake && make && sudo make install # Compile and install 
 ```
-
-README
-----
-RamseyX Client is the client program of distributed computing project RamseyX. 
-It is designed to help DC volunteers contribute their computing power to the project more easily.
 
 COPYING
 ----
