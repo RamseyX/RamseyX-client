@@ -5,10 +5,10 @@ It is designed to help DC volunteers contribute their computing power to the pro
 
 INSTALL
 ----
-Perform this to do a standard install:
+Do this to perform a standard install:
 ```Bash
 git clone https://github.com/ZizhengTai/RamseyX.git && \ # Grab the Source
-cd RanseyX && git checkout Qt && \ # Switch to Branch Qt
+cd RamseyX && git checkout Qt && \ # Switch to Branch Qt
 qmake && make && sudo make install # Compile and install 
 ```
 
