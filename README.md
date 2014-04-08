@@ -1,5 +1,13 @@
 RamseyX Client
 ====
+INSTALL
+----
+Perform this to do a standard install:
+```Bash
+git clone https://github.com/ZizhengTai/RamseyX.git && \ # Grab the Source
+cd RanseyX && git checkout Qt && \ # Switch to Branch Qt
+qmake && make && sudo make install # Compile and install 
+```
 
 README
 ----
@@ -35,8 +43,8 @@ Visit our website for the latest news and downloads:
 
 GIT
 ----
-  To download the very latest source off the GIT server do this:
-```
+To download the very latest source off the GIT server do this:
+```Bash
 git clone https://github.com/ZizhengTai/RamseyX.git
 ```
-  (you'll get a directory named RamseyX created, filled with the source code)
+(you'll get a directory named RamseyX created, filled with the source code)
