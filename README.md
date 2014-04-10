@@ -15,6 +15,8 @@ qmake && make && sudo make install # Compile and install
 You need `boost`, `Qt4` or up and `curl` installed. 
 For the autoupdate function, have `p7zip` ready.
 
+*Tired of building this yourself? Download the pre-build binary (and maybe wine it)!*
+
 COPYING
 ----
 Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
