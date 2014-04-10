@@ -51,6 +51,7 @@ QMAKE_TARGET_PRODUCT = RamseyX Client
 QMAKE_TARGET_DESCRIPTION = RamseyX Client
 DEFINES += RX_QT APP_VERSION=\\\"$$VERSION\\\"
 
+# Hack this if you are using Windows!
 CONFIG(debug, debug|release) {
     CURL_DIR = "C:/Dev/Libraries/curl-7.35.0_msvc2013_x86/builds/libcurl-vc12-x86-debug-dll-ipv6-sspi-spnego-winssl"
     BOOST_DIR = "C:/Dev/Libraries/boost_1_55_0"
@@ -88,10 +89,9 @@ msvc {
 }
 
 gcc {
-    INCLUDEPATH += "$$CURL_DIR/include" \
-        "$$BOOST_DIR" \
-        "/usr/local/include"
-    LIBS += -L"$$CURL_DIR/lib" -L"/usr/local/lib" -lcurl
+    INCLUDEPATH += "$$CURL_DIR/include" "$$BOOST_DIR" \
+	"/usr/local/include" "/usr/include" "/usr/share/include" "/opt/local/include"
+    LIBS += -L"$$CURL_DIR/lib" -L"/usr/local/lib" -L"/usr/share/lib" -L"/usr/lib" -L"/opt/local/lib"  -lcurl
 
     CONFIG(debug, debug|release) {
         LIBS += -L"$$BOOST_DIR/stage/lib" -lboost_atomic-mt-d
@@ -102,9 +102,11 @@ gcc {
 
     QMAKE_CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic
     win32: QMAKE_CXXFLAGS_DEBUG += -static -ggdb # For memory check
-    QMAKE_CXXFLAGS_RELEASE -= -O -O1 -O2
-    QMAKE_CXXFLAGS_RELEASE += -O3 -flto
+    QMAKE_CXXFLAGS_RELEASE -= -O -O1 -O2 -Os
+    QMAKE_CXXFLAGS_RELEASE += -O3 -flto #Well, -O3 and size.... haha
 
     win32: QMAKE_LFLAGS_DEBUG += -static -ggdb # For memory check
     QMAKE_LFLAGS_RELEASE += -flto
 }
+
+
