@@ -7,14 +7,14 @@ INSTALL
 ----
 Do this to perform a standard install:
 ```Bash
-git clone https://github.com/ZizhengTai/RamseyX.git && \ # Grab the Source
+git clone https://github.com/RamseyX/RamseyX.git && \ # Grab the Source
 cd RamseyX && git checkout Qt && \ # Switch to Branch Qt
 qmake && make && sudo make install # Compile and install 
 ```
 
 COPYING
 ----
-Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>
+Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -45,6 +45,6 @@ GIT
 ----
 To download the very latest source off the GIT server do this:
 ```Bash
-git clone https://github.com/ZizhengTai/RamseyX.git
+git clone https://github.com/RamseyX/RamseyX.git
 ```
 (you'll get a directory named RamseyX created, filled with the source code)
