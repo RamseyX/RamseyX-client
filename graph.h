@@ -2,7 +2,7 @@
  *
  * RamseyX Client: client program of distributed computing project RamseyX
  *
- * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>
+ * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public:
     unsigned long long complexity;
     std::bitset<RX_P> setOfVertices;
     std::bitset<RX_P> setOfNeighbourVertices[RX_P];
-    
+
 public:
     Graph() : complexity(0) { }
     void connect(int u, int v)

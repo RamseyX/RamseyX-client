@@ -2,7 +2,7 @@
  *
  * RamseyX Client: client program of distributed computing project RamseyX
  *
- * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>
+ * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ private:
     std::bitset<RX_P> A[RX_N + 1]; // A[1 ~ 3] values: 0 ~ p - 1
     Graph GpA[RX_N + 1]; // Gp[Ai]
     Graph GpS[RX_N + 1]; // Gp(Si)
-    
+
     unsigned int a[RX_P];
     unsigned int gen1[RX_P]; // [0 ~ t[1] - 1]
     unsigned int gen2Indices[RX_P];
@@ -85,7 +85,7 @@ private:
     bool inB3[RX_MN];
 
     bool restoringFromCheckPoint = false;
-    
+
     bool found = false;
     unsigned long long W1Size = 0;
     unsigned long long blockLength = 0;
@@ -97,10 +97,10 @@ private:
 
     boost::atomic<RXTASKINFO> *infoPtr = nullptr;
     RXTASKINFO cache;
-    
+
 public:
     RamseyXTask();
-    
+
     static void init();
     static void initZp();
     static int absOfPrimitiveRootPower(unsigned int exp);
@@ -115,11 +115,11 @@ public:
 
     inline void constructSiFromBi(unsigned int i);
     inline void constructAiFromSi(unsigned int i);
-    
+
     unsigned long long sizeOfW1();
     void calcSizeOfW1(unsigned int index);
     inline int indexOfZp(int element);
-    
+
     void printSQLScript();
 };
 

@@ -2,7 +2,7 @@
  *
  * RamseyX Client: client program of distributed computing project RamseyX
  *
- * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>
+ * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,4 +194,3 @@ void AccountDialog::onValidateAccountThreadFinished(int errorCode)
     ui->logInButton->setText(tr("&Log Out"));
     ui->logInButton->setEnabled(true);
 }
-

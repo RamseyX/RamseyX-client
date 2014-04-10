@@ -2,7 +2,7 @@
  *
  * RamseyX Client: client program of distributed computing project RamseyX
  *
- * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>
+ * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,22 +34,22 @@ public:
     BitsetIterator(const std::bitset<T> &bits) : iterator(-1), bitvec(&bits)
     {
     }
-    
+
     void rebind(const std::bitset<T> &bits)
     {
         bitvec = &bits;
         reset();
     }
-    
+
     void reset()
     {
         iterator = -1;
     }
-    
+
     int next()
     {
         for (++iterator; static_cast<std::size_t>(iterator) < T && !bitvec->operator[](iterator); ++iterator);
-        
+
         return static_cast<std::size_t>(iterator) < T ? iterator : -1;
     }
 };

@@ -2,7 +2,7 @@
  *
  * RamseyX Client: client program of distributed computing project RamseyX
  *
- * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>
+ * Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ void RamseyXTask::launch(boost::atomic<RXTASKINFO> &info, const RXFLAG &threadFl
         // begin currently processed.
         // A layer-1 task will span LAYER1_BLOCKS_PER_TASK blocks unless the number of
         // remaining blocks is less than LAYER1_BLOCKS_PER_TASK.
-        
+
         unsigned long long currentComb = 0, currentBlock = 0, currentOffset = 0;
         for (t[1] = q[1] + 1; RX_MN - t[1] >= q[2] + q[3] + 2; ++t[1])
             for (t[2] = q[2] + 1; RX_MN - t[1] - t[2] >= q[3] + 1;
@@ -287,7 +287,7 @@ bool RamseyXTask::generateB1(unsigned int index, const RXFLAG &threadFlag)
         ++gen1[index])
         if (!generateB1(index + 1, threadFlag))
             return false;
-    
+
     return true;
 }
 
@@ -335,7 +335,7 @@ bool RamseyXTask::generateB1Only(unsigned int index, const RXFLAG &threadFlag)
                 return false;
             }
         }
-        
+
         // Qualified S[1] found
         found = true;
         return false;
@@ -461,7 +461,7 @@ unsigned long long RamseyXTask::sizeOfW1()
     for (a[1] = 1; a[1] * (t[1] - 1) < RX_MN; ++a[1])
         calcSizeOfW1(2);
     W1Size *= combinationTable[RX_MN - t[1]][t[2]];
-    
+
     return W1Size;
 }
 
@@ -474,7 +474,7 @@ int RamseyXTask::absOfPrimitiveRootPower(unsigned int exp)
         result *= RX_G;
         result %= RX_P;
     }
-    
+
     return RX_P < (result << 1) ? RX_P - result : result;
 }
 
@@ -536,7 +536,7 @@ void RamseyXTask::printSQLScript()
             unsigned long long blockTimes = RX_APPROXIMATE_BLOCK_LENGTH / l_subBlockLength + 1;
             unsigned long long l_blockLength = l_subBlockLength * blockTimes;
             unsigned long long blockNum = W1Size / l_blockLength + (W1Size % l_blockLength > 0 ? 1 : 0);
-            
+
             sprintf(sz,
                     "INSERT INTO `task_info` (`CombinationNum`, `BlockNum`, `W1Size`, `BlockLength`) "
                     "VALUES(%llu, %llu, %llu, %llu);\n",

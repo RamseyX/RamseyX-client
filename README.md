@@ -1,6 +1,6 @@
 RamseyX Client
 ====
-RamseyX Client is the client program of distributed computing project RamseyX. 
+RamseyX Client is the client program of distributed computing project RamseyX.
 It is designed to help DC volunteers contribute their computing power to the project more easily.
 
 INSTALL
@@ -9,7 +9,7 @@ Do this to perform a standard install:
 ```Bash
 git clone https://github.com/RamseyX/RamseyX.git && \ # Grab the Source
 cd RamseyX && git checkout Qt && \ # Switch to Branch Qt
-qmake && make && sudo make install # Compile and install 
+qmake && make && sudo make install # Compile and install
 ```
 
 COPYING
