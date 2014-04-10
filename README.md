@@ -12,7 +12,7 @@ cd RamseyX && git checkout Qt && \ # Switch to Branch Qt
 qmake && make && sudo make install # Compile and install
 ```
 
-You need `boost`, `Qt 4` or up and `curl` installed.
+You need `boost`, `Qt4` or up and `curl` installed.
 
 COPYING
 ----
