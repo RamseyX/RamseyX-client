@@ -12,6 +12,8 @@ cd RamseyX && git checkout Qt && \ # Switch to Branch Qt
 qmake && make && sudo make install # Compile and install
 ```
 
+You need `boost`, `Qt 4` or up and `curl` installed.
+
 COPYING
 ----
 Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
