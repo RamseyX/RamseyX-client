@@ -88,7 +88,7 @@ msvc {
     QMAKE_LFLAGS_RELEASE += /LTCG
 }
 
-gcc {
+gcc|clang {
     INCLUDEPATH += "$$CURL_DIR/include" "$$BOOST_DIR" \
 	"/usr/local/include" "/usr/include" "/usr/share/include" "/opt/local/include"
     LIBS += -L"$$CURL_DIR/lib" -L"/usr/local/lib" -L"/usr/share/lib" -L"/usr/lib" -L"/opt/local/lib"  -lcurl
@@ -108,5 +108,4 @@ gcc {
     win32: QMAKE_LFLAGS_DEBUG += -static -ggdb # For memory check
     QMAKE_LFLAGS_RELEASE += -flto
 }
-
 
