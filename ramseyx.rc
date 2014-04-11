@@ -1,4 +1,5 @@
 #include <windows.h>
+/* RamseyX resource defines (windows) See http://msdn.microsoft.com/en-us/library/windows/desktop/aa381049%28v=vs.85%29.aspx */
 
 IDI_ICON1 ICON DISCARDABLE "res/ramseyx.ico"
 
@@ -17,13 +18,14 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904b0"
+        BLOCK "040904b0" /* en-US See http://pnotes.sourceforge.net/languages-ids.txt */
         BEGIN
             VALUE "CompanyName", ""
             VALUE "FileDescription", "RamseyX Client"
             VALUE "FileVersion", "5.0.3.0"
             VALUE "InternalName", "ramseyx.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>"
+            VALUE "LegalCopyright", "Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>\n"
+	"Released under GNU GPL v3.0 as published by the FSF or (at your option) any later version.\nSee http://www.gnu.org/licenses/ ."
             VALUE "OriginalFilename", "ramseyx.exe"
             VALUE "ProductName", "RamseyX Client"
             VALUE "ProductVersion", "5.0.3.0"
