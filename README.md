@@ -17,6 +17,8 @@ For the autoupdate function, have `p7zip` ready. (Well, actually we don't have t
 
 *Tired of building this yourself? Download the pre-build binary (and maybe wine it)!*
 
+**WINDOWS USERS**: Change the `RamseyX.pro` file according to your actual boost and curl path. Or use Qt IDEs.
+
 COPYING
 ----
 Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
