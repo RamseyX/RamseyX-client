@@ -593,6 +593,7 @@ void MainWindow::onMailingListAction()
                 QMessageBox::Ok);
 }
 
+// Translation needed...
 void MainWindow::onAboutAction()
 {
     QMessageBox::about(
@@ -604,16 +605,17 @@ void MainWindow::onAboutAction()
                 tr("<a href=\"mailto:zizheng.tai@gmail.com\">&lt;zizheng.tai@gmail.com&gt;</a><br /><br />") +
                 tr("Home page: <a href=\"http://www.ramseyx.org/\">&lt;http://www.ramseyx.org/&gt;</a><br /><br />") +
                 tr("This program is free software: you can redistribute it and/or modify "
-                   "it under the terms of the GNU General Public License as published by "
-                   "the Free Software Foundation, either version 3 of the License, or "
-                   "(at your option) any later version.<br /><br />"
-                   "This program is distributed in the hope that it will be useful, "
-                   "but WITHOUT ANY WARRANTY; without even the implied warranty of "
-                   "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the "
+                   "it under the terms of the GNU General Public License as published by the Free Software Foundation,"
+		   "either version 3 of the License, or (at your option) any later version.<br /><br />"
+                   "This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;"
+		   "without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the "
                    "GNU General Public License for more details.<br /><br />"
-                   "You should have received a copy of the GNU General Public License "
-                   "along with this program.  If not, see "
-                   "<a href=\"http://www.gnu.org/licenses/\">&lt;http://www.gnu.org/licenses/&gt;</a>."));
+                   "You should have received a copy of the GNU General Public License along with this program.  If not, see "
+                   "<a href=\"http://www.gnu.org/licenses/\">&lt;http://www.gnu.org/licenses/&gt;</a><br />") +
+		tr("<a href=\"http://github.com/RamseyX/\">GitHub Source</a>"));
+    		// This Windows Release also contains parts of 7zip, curl, boost and Qt. Read more about this at the Github Repo Wiki.
+		// How about some ASCII arts here? Or something like XPixMap?
+    
 }
 
 void MainWindow::onRunOnStartupChkClicked()
