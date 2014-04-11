@@ -22,6 +22,7 @@ For the autoupdate function, have `p7zip` ready. (Well, actually we don't have t
 COPYING
 ----
 Copyright (C) 2013-2014 Zizheng Tai <zizheng.tai@gmail.com>, et al.
+** For full lists see [GitHub](https://github.com/RamseyX/RamseyX/graphs/contributors)**
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
