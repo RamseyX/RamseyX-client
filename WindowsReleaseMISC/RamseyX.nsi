@@ -1,23 +1,30 @@
-;NSIS for RamseyX, ModernUI, Unicode
-;Version 3.0a2
+;NSIS for RamseyX, ModernUI, Unicode, Version 3.0a2
 ;Based on NSIS Examples
 ;ALWAYS USE LZMA AND SOLID!
- !include "MUI2.nsh"
+;Use Vim for these awesome syntax highlights~
+  !include "MUI2.nsh"
 
   Name "RamseyX"
   OutFile "RamseyX_5_0_3.exe"
   InstallDir "$PROGRAMFILES\RamseyX"
   InstallDirRegKey HKCU "Software\RamseyX" ""
   RequestExecutionLevel administrator
+  Var StartMenu
 
   !define MUI_ABORTWARNING
 
 ;-----Pages-----
-  !insertmacro MUI_PAGE_LICENSE "COPYING" ;Change this....
+  !insertmacro MUI_PAGE_LICENSE "COPYING" ;Change this....BTW create a link to the GitHub Repo wiki
   ;!insertmacro MUI_PAGE_COMPONENTS (not needed)
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
-  
+
+  ;Start Menu Folder Page Configuration
+  !define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKCU" 
+  !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\RamseyX" 
+  !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
+  !insertmacro MUI_PAGE_STARTMENU Application $StartMenu
+
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
   ; Well, do we need a data dir choice page?
@@ -33,11 +40,8 @@ Section "Dummy Section" SecDummy
   
   ;ADD YOUR OWN FILES HERE...
   
-  ;Store installation folder
-  WriteRegStr HKCU "Software\RamseyX" "" $INSTDIR
-  
-  ;Create uninstaller
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  WriteRegStr HKCU "Software\RamseyX" "" $INSTDIR ;Store installation folder
+  WriteUninstaller "$INSTDIR\Uninstall.exe" ;Create uninstaller
 
 SectionEnd
 
@@ -49,7 +53,7 @@ SectionEnd
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDummy} $(DESC_SecDummy) ;See that Varible?
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecDummy} $(DESC_SecDummy) ;See that Varible?
   !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;Uninstaller Section
@@ -60,6 +64,9 @@ Section "Uninstall"
 
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenu
+  Delete "$SMPROGRAMS\$StartMenu\Uninstall.lnk" ;Please help test something like *.lnk
+  RMDir "$SMPROGRAMS\$StartMenu"
   DeleteRegKey /ifempty HKCU "RamseyX"
 
 SectionEnd
