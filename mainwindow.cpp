@@ -37,7 +37,7 @@
 #if defined(_WIN32)
 #include <wtypes.h>
 #include <shellapi.h>
-#elif defined(__unix__) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
 #else
     #error Unsupported OS
 #endif
@@ -253,7 +253,7 @@ void MainWindow::storeStartupSetting()
                           QString("\"%1\" --auto").arg(qApp->applicationFilePath().replace('/', '\\')));
     else
         settings.remove("RamseyX Client");
-#elif defined(__unix__) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
     if (ui->runOnStartupChk->checkState() == Qt::Checked)
     {
         ui->runOnStartupChk->setChecked(false);
@@ -279,7 +279,7 @@ void MainWindow::loadStartupSetting()
         ui->runOnStartupChk->setChecked(true);
     else
         ui->runOnStartupChk->setChecked(false);
-#elif defined(__unix__) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
     ui->runOnStartupChk->setChecked(false);
 #else
     #error Unsupported OS

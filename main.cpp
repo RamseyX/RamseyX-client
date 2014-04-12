@@ -33,7 +33,7 @@ extern "C"
 #if defined(_WIN32)
 #include <wtypes.h>
 #include <processthreadsapi.h>
-#elif defined(__unix__) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)  //try "defined(__POSIX__)" since these files are part of POSIX standards.
 #include <sys/time.h>
 #include <sys/resource.h>
 #else
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     // Set process priority
 #if defined(_WIN32)
     SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
-#elif defined(__unix__) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
     setpriority(PRIO_PROCESS, 0, 20);
 #else
     #error Unsupported OS
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     {
 #if defined(_WIN32)
         ShellExecute(nullptr, TEXT("runas"), TEXT(".\\update_script.bat"), nullptr, nullptr, SW_SHOWNORMAL);
-#elif defined(__unix__) || defined(__linux__)
+#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
         execlp("sh", "sh", "./update_script.sh", nullptr);
 #else
     #error Unsupported OS

@@ -13,8 +13,7 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     mainwindow.cpp \
-    dhry_2.c \
-    dhry_1.c \
+    dhry_2.c dhry_1.c \
     accountdialog.cpp \
     signupdialog.cpp \
     graph.cpp \

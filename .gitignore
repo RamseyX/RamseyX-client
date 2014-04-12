@@ -1,2 +1,9 @@
 
 *.swp
+
+RamseyX.pro.user
+
+ui*.h
+Makefile
+
+.qmake.stash
