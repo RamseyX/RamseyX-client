@@ -115,8 +115,9 @@ int main(int argc, char *argv[])
     {
 #if defined(_WIN32)
         ShellExecute(nullptr, TEXT("runas"), TEXT(".\\update_script.bat"), nullptr, nullptr, SW_SHOWNORMAL);
-#elif defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)
-        execlp("sh", "sh", "./update_script.sh", nullptr);
+#elif (defined(__unix__) || defined(__linux__) || defined(__APPLE__) || defined(__MACH__)) && defined (UPDATE_RAMSEYX) //Let qmake define this...
+	//NEVER USE THIS!!! This breaks package managers and we don't have release for these systems!
+        /execlp("sh", "sh", "./update_script.sh", nullptr); //Maybe bash?
 #else
     #error Unsupported OS
 #endif
