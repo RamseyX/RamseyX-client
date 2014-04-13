@@ -88,19 +88,23 @@ LangString DESC_SecDummy ${LANG_ENGLISH} "Foo_Bar" ;Stub
 ;Uninstaller Section
 
 Section "Uninstall"
-
-;ADD YOUR OWN FILES HERE...
-
-Delete "$INSTDIR\Uninstall.exe"
+MessageBox MB_OK|MB_ICONEXCLAMATION "卸载前请您确保RamseyX程序已关闭，谢谢！"
+Delete "$INSTDIR\*.*"
 RMDir "$INSTDIR"
-!insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenu
-Delete "$SMPROGRAMS\$StartMenu\Uninstall.lnk" ;Please help test something like *.lnk
-RMDir "$SMPROGRAMS\$StartMenu"
-DeleteRegKey /ifempty HKCU "RamseyX"
-
+;DeleteRegKey ${PRODUCT_UNINST_ROOT_KRY} "${PRODUCT_UNINST_KEY}"
 SectionEnd
+
 Function un.onInit
+MessageBox MB_YESNO "您真的要卸载本运算客户端吗？若有不足之处我们期待您的反馈！" IDYES NoAbort
+Abort
+NoAbort:
+FunctionEnd
 
-!insertmacro MUI_UNGETLANGUAGE
-
+Function .onInit
+InitPluginsDir
+System::Call 'kernel32::CreateMutexA(i 0, i 0, t "nsis") i .rl ?e'
+pop $R0
+StrCmp $R0 0 +3
+MessageBox MB_OK|MB_ICONEXCLAMATION "有另一个安装程序正在运行。"
+Abort
 FunctionEnd
