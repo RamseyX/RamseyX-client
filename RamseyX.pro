@@ -7,6 +7,7 @@
 QT += core gui network #sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+lessThan(QT_MAJOR_VERSION, 5): warning("Working with Qt < 5.")
 
 TARGET = ramseyx
 TEMPLATE = app
@@ -54,6 +55,7 @@ DEFINES += RX_QT APP_VERSION=\\\"$$VERSION\\\"
 CONFIG(debug, debug|release) {
     CURL_DIR = "C:/Dev/Libraries/curl-7.35.0_msvc2013_x86/builds/libcurl-vc12-x86-debug-dll-ipv6-sspi-spnego-winssl"
     BOOST_DIR = "C:/Dev/Libraries/boost_1_55_0"
+    warning("You are now in debug mode which will build your binary without any optimization.")
 }
 CONFIG(release, debug|release) {
     CURL_DIR = "C:/Dev/Libraries/curl-7.35.0_msvc2013_x86/builds/libcurl-vc12-x86-release-dll-ipv6-sspi-spnego-winssl"
@@ -64,6 +66,7 @@ win32 {
     DEFINES += NOMINMAX
     RC_FILE += ramseyx.rc
 }
+
 
 msvc {
     DEFINES += _CRT_SECURE_NO_WARNINGS
