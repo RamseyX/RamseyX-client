@@ -7,7 +7,7 @@
 QT += core gui network #sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-lessThan(QT_MAJOR_VERSION, 5): warning("Working with Qt < 5.")
+lessThan(QT_MAJOR_VERSION, 5): warning("Working with Qt $$QT_MAJOR_VERSION$$QT_MINOR_VERSION$$QT_PATCH_VERSION , which is earlier than Qt 5")
 
 TARGET = ramseyx
 TEMPLATE = app
