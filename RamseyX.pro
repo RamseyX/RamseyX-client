@@ -62,6 +62,11 @@ CONFIG(release, debug|release) {
     BOOST_DIR = "C:/Dev/Libraries/boost_1_55_0"
 }
 
+update {
+    DEFINES += UPDATE_RAMSEYX
+    message( "(CONFIG+=update) passed to qmake. Will use update shell for UNIX-LIKE systems." )
+}
+
 win32 {
     DEFINES += NOMINMAX
     RC_FILE += ramseyx.rc
