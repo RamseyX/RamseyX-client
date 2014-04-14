@@ -12,7 +12,7 @@ cd RamseyX && git checkout Qt && \ # Switch to Branch Qt
 qmake && make && sudo make install # Compile and install
 ```
 
-You need `boost`, `Qt4` or up and `curl` installed. <br />
+You need `boost` includes, `Qt4` includes or up and `curl` libraries installed. <br />
 For the autoupdate function, have `p7zip` ready. (Well, actually we don't have that function for non-Windows platforms.... This breaks things like package managers...)
 
 *Tired of building this yourself? Download the pre-build binary (and maybe wine it)!*
