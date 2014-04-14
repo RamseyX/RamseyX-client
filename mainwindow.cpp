@@ -68,7 +68,8 @@ MainWindow::MainWindow(QWidget *parent, bool autoState) :
         QMessageBox::critical(
             this,
             tr("RamseyX Client"),
-            tr("Fatal error: ") + what + "\t\t\n",
+            tr("Fatal error: ") + what +
+            tr("Please report this to <a href=https://github.com/RamseyX/RamseyX/issues>Github Issues</a>") + \t\t\n",
             QMessageBox::Ok);
     }
 }
