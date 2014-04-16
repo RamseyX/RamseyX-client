@@ -1,28 +1,28 @@
 ;NSIS for RamseyX, ModernUI, Unicode, Version 3.0a2
 ;Based on NSIS Examples
 ;Use Vim for these awesome syntax highlights~
-!include "MUI2.nsh"
-;!include "x64.nsh"
-!include	"Sections.nsh"
-!define	PRODUCT_NAME "RamseyX 运算客户端"
-!define PRODUCT_VERSION "4.4.1.0"
-!define PRODUCT_PUBLISHER "RamseyX 小组"
-!define	PRODUCT_WEB_SITE "http://www.ramseyx.org/index.html"
-!define MUI_ICON "ICON.ico"
 
-Name "RamseyX"
-OutFile "RamseyX_5_0_3.exe"
-InstallDir "$APPDATA\RamseyX" ;Permission issues with UAC in $PROGRAMFILES
-InstallDirRegKey HKCU "Software\RamseyX" ""
- ShowInstDetails	show
-ShowUninstDetails	show
-SetCompressor /SOLID	lzma
-SetCompressorDictSize	128
-SetDatablockOptimize	on
-BrandingText	"Copyright(R)2013 RamseyX 小组，保留所有权利"
-RequestExecutionLevel admin ;Well if you use $APPDATA...
+!include                        "MUI2.nsh"
+!include                        "x64.nsh"
+!include	                "Sections.nsh"
+!define	PRODUCT_NAME            "RamseyX 运算客户端"
+!define PRODUCT_VERSION         "4.4.1.0"
+!define PRODUCT_PUBLISHER       "RamseyX 小组"
+!define	PRODUCT_WEB_SITE        "http://www.ramseyx.org/index.html"
+!define MUI_ICON                "RamseyX.ico"
+Name                            "RamseyX"
+OutFile                         "RamseyX_5_0_3.exe"
+InstallDir                      "$APPDATA\RamseyX" ;Permission issues with UAC in $PROGRAMFILES
+InstallDirRegKey                HKCU "Software\RamseyX" ""
+ShowInstDetails	                show
+ShowUninstDetails	        show
+SetCompressor /SOLID	        lzma
+SetCompressorDictSize	        128
+SetDatablockOptimize	        on
+BrandingText	                "Copyright(R)2013 RamseyX 小组，保留所有权利"
+RequestExecutionLevel           admin
+
 Var StartMenu
-
   !define MUI_ABORTWARNING
   !define MUI_WELCOMEPAGE_TEXT "RamseyX 计划是一个为帮助解决图论中著名的拉姆齐问题而发起的公益分布式运算项目。\r\n\r\n我们因此能够搭建起一张运算能力惊人的巨大运算网，形成一台虚拟的“超级计算机”，这样巨大的运算力将对拉姆齐问题的探索与解决提供极大帮助。\r\n\r\n对于 RamseyX 计划，无论微小或是巨大，每个人的帮助都弥足珍贵。\r\n\r\n我们需要您的帮助！"
   !insertmacro MUI_PAGE_WELCOME
