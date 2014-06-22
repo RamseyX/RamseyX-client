@@ -122,3 +122,5 @@ gcc|clang {
     QMAKE_LFLAGS_RELEASE += -flto
 }
 
+TRANSLATIONS += l10n/RamseyX_zh_CN.ts \
+    l10n/RamseyX_zh_TW.ts 
